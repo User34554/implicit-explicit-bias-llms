@@ -10,7 +10,7 @@ TEMPLATE_COL = f"{LANG}_templates"
 
 # Initialize Gemini client
 import google.generativeai as genai
-genai.configure(api_key="AIzaSyCRaBL-DzzsrvDS2J1txr8v42guLhm_MBs")  # Replace with your Gemini API key
+genai.configure(api_key="key")  # Replace with your Gemini API key
 
 model = genai.GenerativeModel("gemini-2.0-flash")
 
