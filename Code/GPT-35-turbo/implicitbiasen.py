@@ -5,8 +5,7 @@ import re
 
 # === CONFIGURATION ===
 LANG = "en"  # change to "de" or "fr" for German/French
-
-file_path = f"{LANG}.csv"
+file_path = f"../rawdata/{LANG}.csv"
 BIAS_COL = f"{LANG}_biased_sentences"
 TEMPLATE_COL = f"{LANG}_templates"
 
@@ -94,7 +93,7 @@ def ask_gpt(prompt, model="gpt-3.5-turbo"):
     return response.choices[0].message.content.strip()
 
 # === Processing ===
-results = [
+results = []
 
 for i, (_, row) in enumerate(df.iterrows()):
     bias_sentence = row[BIAS_COL]
