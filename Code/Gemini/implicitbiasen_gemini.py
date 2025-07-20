@@ -10,7 +10,7 @@ TEMPLATE_COL = f"{LANG}_templates"
 
 # Initialize Gemini client
 import google.generativeai as genai
-genai.configure(api_key="gemini-key")  # Replace with your Gemini API key
+genai.configure(api_key="key")  # Replace with your Gemini API key
 
 model = genai.GenerativeModel("gemini-2.0-flash")
 
@@ -101,13 +101,13 @@ def ask_gemini(prompt):
 # === Processing ===
 results = []
 
-for i, (_, row) in enumerate(df.head(18).iterrows()):
+for i, (_, row) in enumerate(df.head(27).iterrows()):
 
     bias_sentence = row[BIAS_COL]
     print(f"\n🔹 Example {i + 1}: {bias_sentence}")
 
     # due to rate limiting we skip the first 9 examples
-    if i < 9:
+    if i < 18:
         # Skip processing, insert blank output
         results.append({
             "explicit_bias": bias_sentence,

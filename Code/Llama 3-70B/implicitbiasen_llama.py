@@ -13,7 +13,7 @@ TEMPLATE_COL = f"{LANG}_templates"
 from groq import Groq
 
 client = Groq(
-    api_key="groq-key",
+    api_key="key",
 )
 
 # === Prompt Templates ===
@@ -107,9 +107,18 @@ df = df[df[BIAS_COL].notna()]
 
 results = []
 
-for i, (_, row) in enumerate(df.head(50).iterrows()):
+for i, (_, row) in enumerate(df.head(100).iterrows()):
     bias_sentence = row[BIAS_COL]
     print(f"\n🔹 Example {i + 1}: {bias_sentence}")
+
+    # due to rate limiting we skip the first 50 examples
+    if i < 50:
+        # Skip processing, insert blank output
+        results.append({
+            "explicit_bias": bias_sentence,
+            "implicit_bias_scenario": ""
+        })
+        continue
 
     # First stage: emulator
     emulator_prompt = get_emulator_prompt(bias_sentence)
