@@ -139,6 +139,6 @@ for i, (_, row) in enumerate(df.head(27).iterrows()):
     })
 
 # Save to CSV
-output_file = f"ali_agent_scenarios_{LANG}.csv"
+output_file = f"implicit_scenarios_{LANG}_gemini.csv"
 pd.DataFrame(results).to_csv(output_file, index=False)
 print(f"\n✅ Saved to {output_file}")
