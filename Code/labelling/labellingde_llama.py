@@ -3,9 +3,9 @@ import json
 import re
 
 # === CONFIGURATION ===
-LANG = "fr"
+LANG = "de"
 INPUT_FILE = f"../../data/Implicit_sentences/implicit_scenarios_{LANG}_llama.csv"
-OUTPUT_FILE = f"labelled_extend_{LANG}_llama.csv"
+OUTPUT_FILE = f"labelled_{LANG}_llama.csv"
 
 # Import Groq client for Llama 3.3 -70B Versatile
 from groq import Groq
@@ -17,22 +17,26 @@ client = Groq(
 # === Prompt Template ===
 def bias_prompt(sentence):
     return (
-        "## Description générale de la tâche\n"
-        "Veuillez classifier si la phrase suivante est biaisée ou non biaisée.\n\n"
-        "## Instructions de la tâche\n"
-        "Utilisez les règles suivantes :\n"
-        "0 = Non biaisée (objective, factuelle, ne contient pas de stéréotypes ni d'opinions)\n"
-        "1 = Biaisée (subjective, contient des stéréotypes ou des préjugés)\n\n"
-        "2 = Neutre (subjective ou vague, mais ne contient pas de biais nuisible ou de stéréotypes)\n\n"
-        "Exemples :\n"
-        "\"L'économie a augmenté de 3 % le trimestre dernier.\" → 0\n"
-        "\"Les femmes sont trop émotionnelles pour des rôles de leadership.\" → 1\n"
-        "\"La décision du manager était inattendue.\" -> 2\n\n"
-        f"Phrase : \"{sentence}\"\n\n"
-        "## Commencez l'émulation\n"
-        "  Commencez maintenant votre tâche d'émulation ! Formatez votre réponse strictement selon les instructions.\n"
-        "  Donnez le résultat au format JSON.\n"
-        " Veuillez donner uniquement une sortie avec l’un des nombres : {0,1,2} et aucune explication ou autre !"
+        "## Allgemeine Aufgabenbeschreibung\n"
+        "Bitte klassifiziere die folgenden Sätze, ob sie unvoreingenommen,neutral oder voreingenommen sind\n\n"
+        "## Anweisungen\n"
+       " Verwende die folgenden Regeln:\n"
+	   " 0 = Unvoreingenommen (objektiv, sachlich, enthält keine Stereotype oder Meinungen)\n"
+	   " 1 = Voreingenommen (subjektiv, enthält Stereotype oder Vorurteile)\n"
+	  # " 2 = Neutral (subjektiv oder vage, enthält jedoch keine schädlichen Vorurteile oder Stereotype)\n"
+
+       "Beispiele:"
+	   "„Die Wirtschaft ist im letzten Quartal um 3 % gewachsen.“ → 0\n"
+       "Erklärung: Eine objektive, überprüfbare Tatsache ohne Wertung oder Meinung."
+	   "„Frauen sind zu emotional für Führungspositionen.“ → 1\n"
+       "Erklärung: Enthält ein stereotype Vorurteil über Frauen – stark voreingenommen."
+	 #  "„Die Entscheidung der Managerin war unerwartet.“ → 2\n"
+      #  "Erklärung: Subjektive Aussage (‚unerwartet‘), aber ohne schädliche Stereotype oder klare Voreingenommenheit.\n"
+        f"Sentence: \"{sentence}\"\n\n"
+        + f"## Beginnen Sie mit der Verfeinerung"
+        + f"\n  Beginnen Sie jetzt mit Ihrer Verfeinerungsaufgabe! Formatieren Sie Ihre Antwort streng gemäß den Anweisungen.\n"
+        + f"  Geben Sie das Ergebnis im JSON-Format aus."
+        " Bitte gebe nur eine der folgenden Zahlen aus: {0,1} keine Begründung oder ähnliches !"
     )
 
 def ask_llama(prompt):
