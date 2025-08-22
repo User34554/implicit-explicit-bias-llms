@@ -12,7 +12,7 @@ TEMPLATE_COL = f"{LANG}_templates"
 import google.generativeai as genai
 genai.configure(api_key="key")  # Replace with your Gemini API key
 
-model = genai.GenerativeModel("gemini-2.0-flash")
+model = genai.GenerativeModel("gemma-3n-e2b-it")
 
 # Load and filter dataset
 df = pd.read_csv(file_path)
