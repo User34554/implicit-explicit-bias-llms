@@ -14,7 +14,7 @@ from transformers import TrainerCallback
 # ----------------------------
 # 0. Excel-File upload
 # ----------------------------
-excel_file = "/workspace/bias_data.xlsx"  # <- mounted volume path
+excel_file = "bias_data.xlsx"  # <- mounted volume path
 df = pd.read_excel(excel_file)
 print("DataFrame loaded with shape:", df.shape)
 
@@ -25,15 +25,15 @@ train_df, test_df = train_test_split(df, test_size=0.1, random_state=42)
 print("Train/Test split done:")
 
 # Optional: direkt JSONL speichern
-train_df.to_json("/workspace/train.json", orient="records", lines=True)
-test_df.to_json("/workspace/test.json", orient="records", lines=True)
+train_df.to_json("train.json", orient="records", lines=True)
+test_df.to_json("test.json", orient="records", lines=True)
 
 # ----------------------------
 # 2. Hugging Face Dataset creation
 # ----------------------------
 dataset = DatasetDict({
-    "train": load_dataset("json", data_files="/workspace/train.json")["train"],
-    "test": load_dataset("json", data_files="/workspace/test.json")["train"]
+    "train": load_dataset("json", data_files="train.json")["train"],
+    "test": load_dataset("json", data_files="test.json")["train"]
 })
 print("Dataset created with train and test splits")
 
@@ -95,7 +95,7 @@ torch.backends.cudnn.allow_tf32 = True
 # 7. Training settings
 # ----------------------------
 training_args = TrainingArguments(
-    output_dir="/workspace/llama8b-lora-bias",
+    output_dir="llama8b-lora-bias",
     per_device_train_batch_size=2,
     gradient_accumulation_steps=8,
     learning_rate=2e-4,
@@ -149,9 +149,9 @@ print("Training completed.")
 # ----------------------------
 # 11. Modell save
 # ----------------------------
-model.save_pretrained("/workspace/llama8b-lora-bias")
-tokenizer.save_pretrained("/workspace/llama8b-lora-bias")
-print("Model and tokenizer saved to /workspace/llama8b-lora-bias")
+model.save_pretrained("llama8b-lora-bias")
+tokenizer.save_pretrained("llama8b-lora-bias")
+print("Model and tokenizer saved to llama8b-lora-bias")
 
 # ----------------------------
 # 12. Model load & test
@@ -162,7 +162,7 @@ base_model = AutoModelForCausalLM.from_pretrained(
     device_map="auto",
     quantization_config=bnb_config
 )
-model = PeftModel.from_pretrained(base_model, "/workspace/llama8b-lora-bias")
+model = PeftModel.from_pretrained(base_model, "llama8b-lora-bias")
 
 # Testing
 prompt = "Sentence: 'All people from X are lazy.'\nIs this sentence biased?"
