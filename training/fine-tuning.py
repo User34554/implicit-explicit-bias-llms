@@ -88,6 +88,7 @@ print(f"Model: {model}")
 
 # Gradient Checkpointing + TF32
 model.gradient_checkpointing_enable()
+model.enable_input_require_grads()
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
 
