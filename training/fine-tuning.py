@@ -135,7 +135,6 @@ trainer = SFTTrainer(
     model=model,
     train_dataset=dataset["train"],
     eval_dataset=dataset["test"],
-    tokenizer=tokenizer,
     args=training_args,
     formatting_func=lambda ex: [f"{ex['prompt']}\nAnswer: {ex['response']}"]
 )
