@@ -72,7 +72,7 @@ def tokenize(batch):
     # mask prompt tokens for loss
     labels = tokenized["input_ids"].copy()
     prompt_len = len(tokenizer(batch["prompt"], truncation=True)["input_ids"])
-    labels[:prompt_len] = -100
+    labels[:prompt_len] = [-100] * prompt_len
     tokenized["labels"] = labels
     return tokenized
 
