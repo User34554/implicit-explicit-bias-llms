@@ -147,7 +147,7 @@ trainer = SFTTrainer(
     args=training_args,
 )
 
-trainer.add_callback(EarlyStoppingCallback(early_stopping_patience=2))  # stop if eval loss does not improve for 2 epochs
+#trainer.add_callback(EarlyStoppingCallback(early_stopping_patience=2))  # stop if eval loss does not improve for 2 epochs
 
 # ----------------------------
 # 10. Training start
