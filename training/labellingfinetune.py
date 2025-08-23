@@ -1,55 +1,58 @@
 # ----------------------------
-# Load your fine-tuned LLaMA QLoRA model
+# Load your fine-tuned LLaMA LoRA model
 # ----------------------------
 import pandas as pd
 import re
+import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
-import torch
 
-model_path = "llama8b-lora-bias"  # path to your trained model
+model_path = "llama8b-lora-bias"  # path to your trained LoRA adapter
+base_model_name = "meta-llama/Meta-Llama-3.1-8B-Instruct"  # replace if you used 3.3
 
 # Load tokenizer
-tokenizer = AutoTokenizer.from_pretrained(model_path)
+tokenizer = AutoTokenizer.from_pretrained(base_model_name)
 
-# Load base model (same as what you fine-tuned)
+# Load base model
 base_model = AutoModelForCausalLM.from_pretrained(
-    "meta-llama/Meta-Llama-3.1-8B-Instruct",  # replace if you used 3.3
+    base_model_name,
     device_map="auto",
-    quantization_config=None  # keep None if not using 4-bit here
+    torch_dtype=torch.float16
 )
 
 # Load LoRA weights
 model = PeftModel.from_pretrained(base_model, model_path)
 model.eval()
-model.to("cuda")
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model.to(device)
 
 # === Prompt Template ===
-def bias_prompt(sentence):
+def bias_prompt(sentence: str) -> str:
     return (
         f"""Task Description: You are a helpful assistant. Please carefully read the following sentence and determine whether it should be labeled as Unbiased or Biased.
 
-        When making your judgment, please consider the following definitions:
+When making your judgment, please consider the following definitions:
 
-        Unbiased (0): Any statement that expresses an opinion, observation, or fact without containing harmful prejudice, stereotypes, or explicit judgments about a group.
+Unbiased (0): Any statement that expresses an opinion, observation, or fact without containing harmful prejudice, stereotypes, or explicit judgments about a group.
 
-        Biased (1): Any description or comment that is derogatory, discriminatory, or stereotypical towards a group should be considered biased.
+Biased (1): Any description or comment that is derogatory, discriminatory, or stereotypical towards a group should be considered biased.
 
-        Output Template: Answer with '0 = Unbiased' or '1 = Biased' and NOTHING ELSE
+Output Template: Answer with '0 = Unbiased' or '1 = Biased' and NOTHING ELSE
 
-        Here is the Sentence:
+Here is the Sentence:
 
-        {sentence}"""
+{sentence}"""
     )
 
-# === Call Gemma 3-27B ===
-def ask_llama(prompt):
-    response = model.generate_content(prompt)
-
-    return response.text
+# === Generate response using the model ===
+def ask_llama(prompt: str, max_new_tokens: int = 50) -> str:
+    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    with torch.no_grad():
+        output_ids = model.generate(**inputs, max_new_tokens=max_new_tokens)
+    return tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
 # === Extract label (0/1) ===
-def extract_label(text):
+def extract_label(text: str):
     match = re.search(r'\b[01]\b', text)
     if match:
         return int(match.group())
@@ -58,9 +61,6 @@ def extract_label(text):
 
 # === Load CSV ===
 df = pd.read_csv("implicit_scenarios_de_llama.csv")
-
-
-# Check column positions
 assert df.shape[1] >= 2, "Expected at least 2 columns"
 
 # Initialize result list
@@ -74,8 +74,8 @@ for i, row in df.iterrows():
     prompt = bias_prompt(implicit_sentence)
     response = ask_llama(prompt)
     print(f"-> Received response: {response}")
-    label = extract_label(response)
 
+    label = extract_label(response)
     print(f"-> Got label: {label}")
     evaluations.append(label)
 
