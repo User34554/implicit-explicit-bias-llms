@@ -167,6 +167,7 @@ training_args_kwargs = {
     "fp16": False,
     "bf16": torch.cuda.is_available(),  # use bf16 on capable GPUs
     "logging_steps": 20,
+    "eval_strategy": "epoch",
     "save_strategy": "epoch",
     "save_total_limit": 2,
     "load_best_model_at_end": True,
