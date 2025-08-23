@@ -61,18 +61,23 @@ dataset = dataset.map(format_example)
 # 5. Tokenization
 # -----------------------------
 def tokenize(batch):
-    # concatenate prompt + completion
-    text = batch["prompt"] + " " + batch["completion"]
+    # Tokenize prompt + completion together
     tokenized = tokenizer(
-        text,
+        batch["prompt"],
+        batch["completion"],
         truncation=True,
         padding="max_length",
-        max_length=128,  # truncate long sentences
+        max_length=512,
     )
-    # mask prompt tokens for loss
-    labels = tokenized["input_ids"].copy()
-    prompt_len = len(tokenizer(batch["prompt"], truncation=True)["input_ids"])
-    labels[:prompt_len] = [-100] * prompt_len
+
+    # Flatten input IDs for labels
+    labels = []
+    for p, c in zip(batch["prompt"], batch["completion"]):
+        ids = tokenizer(p + " " + c, truncation=True, max_length=512)["input_ids"]
+        prompt_len = len(tokenizer(p, truncation=True)["input_ids"])
+        ids[:prompt_len] = [-100] * prompt_len
+        labels.append(ids)
+
     tokenized["labels"] = labels
     return tokenized
 
