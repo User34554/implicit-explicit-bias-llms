@@ -92,6 +92,10 @@ model.enable_input_require_grads()
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
 
+# Check which parameters are trainable
+for name, param in model.named_parameters():
+    if param.requires_grad:
+        print(f"Trainable: {name}, grad None: {param.grad is None}")
 # ----------------------------
 # 7. Training settings
 # ----------------------------
