@@ -59,13 +59,13 @@ dataset["test"] = dataset["test"].map(formatting_func)
 print(f"Dataset: {len(dataset['train'])} training examples, {len(dataset['test'])} test examples")
 
 # ----------------------------
-# 5. LoRA Configuration
+# 5. LoRA Configuration (with higher dropout & smaller rank for regularization)
 # ----------------------------
 lora_config = LoraConfig(
-    r=64,
+    r=32,                   # reduced rank
     lora_alpha=16,
     target_modules=["q_proj","v_proj"],  # LLaMA-specific
-    lora_dropout=0.05,
+    lora_dropout=0.1,       # increased dropout
     bias="none",
     task_type="CAUSAL_LM",
 )
@@ -99,17 +99,20 @@ for name, param in model.named_parameters():
         print(f"Trainable: {name}")
 
 # ----------------------------
-# 7. Training settings
+# 7. Training settings (with weight decay, smaller learning rate)
 # ----------------------------
 training_args = TrainingArguments(
     output_dir="llama8b-lora-bias",
     per_device_train_batch_size=2,
     gradient_accumulation_steps=8,
-    learning_rate=2e-4,
+    learning_rate=1e-5,          # smaller learning rate
+    weight_decay=0.01,            # weight decay for regularization
     num_train_epochs=3,
     logging_steps=10,
     save_strategy="epoch",
     bf16=True,
+    evaluation_strategy="epoch",  # evaluate each epoch
+    save_total_limit=2            # keep last 2 checkpoints
 )
 
 # ----------------------------
@@ -135,16 +138,18 @@ class StepTimer(TrainerCallback):
             print(f"[Timing] avg step last 10: {avg:.4f}s")
 
 # ----------------------------
-# 9. SFT Trainer
+# 9. SFT Trainer with Early Stopping
 # ----------------------------
+from transformers import EarlyStoppingCallback
+
 trainer = SFTTrainer(
     model=model,
     train_dataset=dataset["train"],
     eval_dataset=dataset["test"],
     args=training_args,
-   # completion_only_loss=True  # compute loss only on target
 )
 trainer.add_callback(StepTimer(warmup=10))
+trainer.add_callback(EarlyStoppingCallback(early_stopping_patience=2))  # stop if eval loss does not improve for 2 epochs
 
 # ----------------------------
 # 10. Training start
