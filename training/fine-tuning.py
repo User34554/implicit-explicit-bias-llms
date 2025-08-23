@@ -26,11 +26,11 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 # -----------------------------
-# 2. LoRA config
+# 2. LoRA config (smaller rank)
 # -----------------------------
 peft_config = LoraConfig(
-    r=16,
-    lora_alpha=32,
+    r=8,                     # reduced from 16
+    lora_alpha=16,            # smaller learning scale
     target_modules=["q_proj", "v_proj", "k_proj", "o_proj"],
     lora_dropout=0.05,
     bias="none",
@@ -42,42 +42,37 @@ model = get_peft_model(model, peft_config)
 # 3. Dataset preparation
 # -----------------------------
 df = pd.read_excel("bias_data.xlsx")
-df = df.rename(columns={"text": "sentence", "label": "label"})
-
-# Ensure labels are strings ("0" / "1")
-df["label"] = df["label"].astype(str)
+df = df.rename(columns={df.columns[0]: "sentence", df.columns[1]: "label"})
 
 dataset = Dataset.from_pandas(df)
 dataset = dataset.train_test_split(test_size=0.2, seed=42)
 
-# Format for fine-tuning
+# -----------------------------
+# 4. Format for fine-tuning
+# -----------------------------
 def format_example(example):
-    prompt = f"Sentence:\n{example['sentence']}\nLabel:"
-    completion = example["label"]  # "0" or "1"
+    prompt = f"Sentence:\n{example['sentence']}\nLabel:"  # only sentence
+    completion = str(example["label"])                    # "0" or "1"
     return {"prompt": prompt, "completion": completion}
 
 dataset = dataset.map(format_example)
 
 # -----------------------------
-# 4. Tokenization
+# 5. Tokenization
 # -----------------------------
 def tokenize(batch):
-    # Encode prompt and completion together
+    # concatenate prompt + completion
     text = batch["prompt"] + " " + batch["completion"]
     tokenized = tokenizer(
         text,
         truncation=True,
         padding="max_length",
-        max_length=128  # keep it smaller to reduce overfitting
+        max_length=128,  # truncate long sentences
     )
-
-    # Copy input_ids to labels
+    # mask prompt tokens for loss
     labels = tokenized["input_ids"].copy()
-
-    # Mask prompt tokens so loss is only on the completion
-    prompt_ids = tokenizer(batch["prompt"], truncation=True, max_length=128)["input_ids"]
-    labels[:len(prompt_ids)] = [-100] * len(prompt_ids)
-
+    prompt_len = len(tokenizer(batch["prompt"], truncation=True)["input_ids"])
+    labels[:prompt_len] = -100
     tokenized["labels"] = labels
     return tokenized
 
@@ -85,14 +80,13 @@ train_dataset = dataset["train"].map(tokenize, remove_columns=dataset["train"].c
 eval_dataset = dataset["test"].map(tokenize, remove_columns=dataset["test"].column_names)
 
 # -----------------------------
-# 5. Metrics
+# 6. Metrics
 # -----------------------------
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
     preds = logits.argmax(-1)
+    true_labels, pred_labels = [], []
 
-    true_labels = []
-    pred_labels = []
     for p, l in zip(preds, labels):
         for pi, li in zip(p, l):
             if li != -100:
@@ -104,32 +98,20 @@ def compute_metrics(eval_pred):
     return {"accuracy": acc, "f1": f1}
 
 # -----------------------------
-# 6. Training
+# 7. Training
 # -----------------------------
 training_args = TrainingArguments(
     output_dir="./llama3-bias-classifier",
     per_device_train_batch_size=2,
-    per_device_eval_batch_size=2,
     gradient_accumulation_steps=8,
-    learning_rate=5e-5,   # reduced LR to prevent overfitting
-    weight_decay=0.01,    #  regularization
-    num_train_epochs=5,   # more epochs but with early stopping
+    learning_rate=1e-4,
+    num_train_epochs=3,
     fp16=False,
     bf16=True,
-    eval_strategy="epoch",
-    save_strategy="epoch",
     logging_steps=20,
     report_to="none",
     save_total_limit=2,
-    remove_unused_columns=False,
-    load_best_model_at_end=True,
-    metric_for_best_model="accuracy",  # needed for early stopping
-    greater_is_better=True
 )
-
-# Add early stopping
-from transformers import EarlyStoppingCallback
-callbacks = [EarlyStoppingCallback(early_stopping_patience=2)]
 
 trainer = Trainer(
     model=model,
@@ -137,8 +119,27 @@ trainer = Trainer(
     train_dataset=train_dataset,
     eval_dataset=eval_dataset,
     tokenizer=tokenizer,
-    compute_metrics=compute_metrics,
-    callbacks=callbacks
+    compute_metrics=compute_metrics
 )
 
 trainer.train()
+
+# -----------------------------
+# 8. Save model
+# -----------------------------
+model.save_pretrained("llama3-bias-lora")
+tokenizer.save_pretrained("llama3-bias-lora")
+
+# -----------------------------
+# 9. Inference example
+# -----------------------------
+prompt = "Sentence:\nAll people from X are lazy.\nLabel:"
+inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
+outputs = model.generate(
+    **inputs,
+    max_new_tokens=1,   # generate only the label
+    do_sample=False,
+    eos_token_id=tokenizer.eos_token_id,
+    pad_token_id=tokenizer.pad_token_id
+)
+print("Predicted label:", tokenizer.decode(outputs[0], skip_special_tokens=True))
