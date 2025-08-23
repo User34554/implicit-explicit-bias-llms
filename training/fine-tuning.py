@@ -103,17 +103,15 @@ eval_dataset = dataset["test"].map(tokenize, remove_columns=dataset["test"].colu
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
     preds = logits.argmax(-1)
-    true_labels, pred_labels = [], []
 
-    for p, l in zip(preds, labels):
-        for pi, li in zip(p, l):
-            if li != -100:
-                true_labels.append(li)
-                pred_labels.append(pi)
+    mask = labels != -100
+    true_labels = labels[mask]
+    pred_labels = preds[mask]
 
     acc = accuracy_score(true_labels, pred_labels)
     f1 = f1_score(true_labels, pred_labels, average="macro")
     return {"accuracy": acc, "f1": f1}
+
 
 # -----------------------------
 # 7. Training
