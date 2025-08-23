@@ -45,28 +45,17 @@ Here is the Sentence:
     )
 
 # === Generate response using the model ===
-def ask_llama(prompt: str, max_new_tokens: int = 500, temperature: float = 0.0) -> str:
-    """
-    Generate response from the model using the prompt.
-    - max_new_tokens: maximum length of the generated text
-    - temperature: lower = more deterministic
-    """
+def ask_llama(prompt: str, max_new_tokens: int = 50) -> str:
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
     with torch.no_grad():
-        output_ids = model.generate(
-            **inputs,
-            max_new_tokens=max_new_tokens,
-            temperature=temperature,
-            do_sample=False,   # deterministic output
-            pad_token_id=tokenizer.eos_token_id
-        )
+        output_ids = model.generate(**inputs, max_new_tokens=max_new_tokens)
     return tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
 # === Extract label (0/1) ===
 def extract_label(text: str):
-    matches = re.findall(r'\b[01]\b', text)  # find all 0 or 1
-    if matches:
-        return int(matches[-1])  # take the last one
+    match = re.search(r'\b[01]\b', text)
+    if match:
+        return int(match.group())
     else:
         return None
 
