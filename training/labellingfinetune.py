@@ -6,6 +6,17 @@ import re
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
+from transformers import LogitsProcessor
+
+class AllowedTokensLogitsProcessor(LogitsProcessor):
+    def __init__(self, allowed_ids):
+        self.allowed_ids = allowed_ids
+
+    def __call__(self, input_ids, scores):
+        # Mask out all tokens except allowed ones
+        mask = torch.ones_like(scores) * -1e9
+        mask[:, self.allowed_ids] = 0
+        return scores + mask
 
 model_path = "llama8b-lora-bias"  # path to your trained LoRA adapter
 base_model_name = "meta-llama/Meta-Llama-3.1-8B-Instruct"  # replace if you used 3.3
@@ -48,26 +59,20 @@ Here is the Sentence:
 # === Generate strict 0/1 response using the model ===
 def ask_llama(prompt: str) -> str:
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
-
-    # Get the token IDs for '0' and '1'
-    allowed_tokens = [tokenizer.convert_tokens_to_ids("0"), tokenizer.convert_tokens_to_ids("1")]
+    allowed_tokens = [tokenizer.convert_tokens_to_ids("0"),
+                      tokenizer.convert_tokens_to_ids("1")]
 
     with torch.no_grad():
         output_ids = model.generate(
             **inputs,
-            max_new_tokens=5,  # only need 1 token
-            do_sample=False,  # greedy decoding
+            max_new_tokens=1,
+            do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
-            logits_processor=[torch.nn.LogitsProcessorList([
-                # This custom processor will filter logits to only allow '0' or '1'
-                torch.nn.LogitsProcessorList()
-            ])]
+            logits_processor=[AllowedTokensLogitsProcessor(allowed_tokens)]
         )
 
-    # Decode and extract only first '0' or '1'
     output_text = tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
-    match = re.search(r'\b[01]\b', output_text)
-    return match.group() if match else None
+    return output_text  # will be "0" or "1"
 
 # === Load CSV ===
 df = pd.read_csv("implicit_scenarios_de_llama.csv")
