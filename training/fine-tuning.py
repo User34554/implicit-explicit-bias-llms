@@ -157,7 +157,7 @@ def compute_metrics(eval_pred):
 # -----------------------------
 # 7. Training args (version-safe)
 # -----------------------------
-eval_key = "evaluation_strategy" if V(trf_version) >= V("4.31.0") else "eval_strategy"
+
 training_args_kwargs = {
     "output_dir": "./llama3-bias-classifier",
     "per_device_train_batch_size": 2,
@@ -173,7 +173,6 @@ training_args_kwargs = {
     "metric_for_best_model": "accuracy",
     "report_to": "none",
 }
-training_args_kwargs[eval_key] = "epoch"
 
 training_args = TrainingArguments(**training_args_kwargs)
 
