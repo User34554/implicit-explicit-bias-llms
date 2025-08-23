@@ -9,6 +9,11 @@ from transformers import (
     Trainer,
     __version__ as trf_version,
 )
+from transformers import set_sdpa_enabled
+
+# Disable SDPA attention to avoid shape mismatch
+set_sdpa_enabled(False)
+
 from packaging.version import parse as V
 from peft import LoraConfig, get_peft_model
 from sklearn.metrics import accuracy_score, f1_score
