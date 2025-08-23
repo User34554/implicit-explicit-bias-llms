@@ -109,10 +109,8 @@ training_args = TrainingArguments(
     weight_decay=0.01,            # weight decay for regularization
     num_train_epochs=3,
     logging_steps=10,
-    save_strategy="epoch",
-    bf16=True,
-    evaluation_strategy="epoch",  # evaluate each epoch
-    save_total_limit=2            # keep last 2 checkpoints
+    save_strategy="epoch",        # keep saving each epoch
+    bf16=True
 )
 
 # ----------------------------
