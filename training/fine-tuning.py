@@ -146,7 +146,7 @@ trainer = SFTTrainer(
     eval_dataset=dataset["test"],
     args=training_args,
 )
-trainer.add_callback(StepTimer(warmup=10))
+
 trainer.add_callback(EarlyStoppingCallback(early_stopping_patience=2))  # stop if eval loss does not improve for 2 epochs
 
 # ----------------------------
