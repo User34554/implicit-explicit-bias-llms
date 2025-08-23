@@ -1,18 +1,28 @@
+# ----------------------------
+# Load your fine-tuned LLaMA QLoRA model
+# ----------------------------
 import pandas as pd
 import re
-import google.generativeai as genai
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from peft import PeftModel
+import torch
 
-# === CONFIGURATION ===
-LANG = "en"
-INPUT_FILE = f"implicit_scenarios_en_llama.csv"
-OUTPUT_FILE = f"gemma-3-27B.csv"
+model_path = "llama8b-lora-bias"  # path to your trained model
 
-# Initialize Google GenAI client
-# Initialize Gemini client
-import google.generativeai as genai
-genai.configure(api_key="AIzaSyBjD4pgzHvbZfgAxItksxWzfEb9vvqNqio")  # Replace with your Gemini API key
+# Load tokenizer
+tokenizer = AutoTokenizer.from_pretrained(model_path)
 
-model = genai.GenerativeModel("gemma-3n-e2b-it")
+# Load base model (same as what you fine-tuned)
+base_model = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Meta-Llama-3.1-8B-Instruct",  # replace if you used 3.3
+    device_map="auto",
+    quantization_config=None  # keep None if not using 4-bit here
+)
+
+# Load LoRA weights
+model = PeftModel.from_pretrained(base_model, model_path)
+model.eval()
+model.to("cuda")
 
 # === Prompt Template ===
 def bias_prompt(sentence):
@@ -33,7 +43,7 @@ def bias_prompt(sentence):
     )
 
 # === Call Gemma 3-27B ===
-def ask_gemma(prompt):
+def ask_llama(prompt):
     response = model.generate_content(prompt)
 
     return response.text
@@ -47,7 +57,8 @@ def extract_label(text):
         return None
 
 # === Load CSV ===
-df = pd.read_csv(INPUT_FILE)
+df = pd.read_csv("implicit_scenarios_de_llama.csv")
+
 
 # Check column positions
 assert df.shape[1] >= 2, "Expected at least 2 columns"
@@ -61,7 +72,7 @@ for i, row in df.iterrows():
     print(f"\n🔹 Example {i + 1}: {implicit_sentence}")
 
     prompt = bias_prompt(implicit_sentence)
-    response = ask_gemma(prompt)
+    response = ask_llama(prompt)
     print(f"-> Received response: {response}")
     label = extract_label(response)
 
@@ -72,5 +83,5 @@ for i, row in df.iterrows():
 df.insert(0, "evaluation", evaluations)
 
 # Save result
-df.to_csv(OUTPUT_FILE, index=False)
-print(f"\n✅ Saved labeled file to: {OUTPUT_FILE}")
+df.to_csv("labelledde_finetune.csv", index=False)
+print(f"\n✅ Saved labeled file to: labelledde_finetune.csv")
