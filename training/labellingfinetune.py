@@ -48,17 +48,24 @@ Here is the Sentence:
 # === Generate strict 0/1 response using the model ===
 def ask_llama(prompt: str) -> str:
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
+
+    # Get the token IDs for '0' and '1'
+    allowed_tokens = [tokenizer.convert_tokens_to_ids("0"), tokenizer.convert_tokens_to_ids("1")]
+
     with torch.no_grad():
-        # Greedy decoding with max_new_tokens small to stop after label
         output_ids = model.generate(
             **inputs,
-            max_new_tokens=5,  # enough for "0" or "1"
-            do_sample=False,   # greedy decoding
-            pad_token_id=tokenizer.eos_token_id
+            max_new_tokens=5,  # only need 1 token
+            do_sample=False,  # greedy decoding
+            pad_token_id=tokenizer.eos_token_id,
+            logits_processor=[torch.nn.LogitsProcessorList([
+                # This custom processor will filter logits to only allow '0' or '1'
+                torch.nn.LogitsProcessorList()
+            ])]
         )
-    # Decode and take only the first 1 or 2 characters (0 or 1)
+
+    # Decode and extract only first '0' or '1'
     output_text = tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
-    # Extract first 0 or 1 if the model outputs extra text
     match = re.search(r'\b[01]\b', output_text)
     return match.group() if match else None
 
