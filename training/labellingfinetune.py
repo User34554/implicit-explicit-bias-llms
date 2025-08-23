@@ -6,17 +6,6 @@ import re
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
-from transformers import LogitsProcessor
-
-class AllowedTokensLogitsProcessor(LogitsProcessor):
-    def __init__(self, allowed_ids):
-        self.allowed_ids = allowed_ids
-
-    def __call__(self, input_ids, scores):
-        # Mask out all tokens except allowed ones
-        mask = torch.ones_like(scores) * -1e9
-        mask[:, self.allowed_ids] = 0
-        return scores + mask
 
 model_path = "llama8b-lora-bias"  # path to your trained LoRA adapter
 base_model_name = "meta-llama/Meta-Llama-3.1-8B-Instruct"  # replace if you used 3.3
@@ -56,23 +45,19 @@ Here is the Sentence:
     )
 
 # === Generate response using the model ===
-# === Generate strict 0/1 response using the model ===
-def ask_llama(prompt: str) -> str:
+def ask_llama(prompt: str, max_new_tokens: int = 50) -> str:
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
-    allowed_tokens = [tokenizer.convert_tokens_to_ids("0"),
-                      tokenizer.convert_tokens_to_ids("1")]
-
     with torch.no_grad():
-        output_ids = model.generate(
-            **inputs,
-            max_new_tokens=1,
-            do_sample=False,
-            pad_token_id=tokenizer.eos_token_id,
-            logits_processor=[AllowedTokensLogitsProcessor(allowed_tokens)]
-        )
+        output_ids = model.generate(**inputs, max_new_tokens=max_new_tokens)
+    return tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
-    output_text = tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
-    return output_text  # will be "0" or "1"
+# === Extract label (0/1) ===
+def extract_label(text: str):
+    match = re.search(r'\b[01]\b', text)
+    if match:
+        return int(match.group())
+    else:
+        return None
 
 # === Load CSV ===
 df = pd.read_csv("implicit_scenarios_de_llama.csv")
@@ -83,11 +68,16 @@ evaluations = []
 
 # Process each row in the DataFrame
 for i, row in df.iterrows():
-    sentence = row.iloc[1]
-    prompt = bias_prompt(sentence)
-    label = ask_llama(prompt)
-    print(f"🔹 Example {i+1} label: {label}")
-    evaluations.append(int(label) if label is not None else None)
+    implicit_sentence = row.iloc[1]  # second column
+    print(f"\n🔹 Example {i + 1}: {implicit_sentence}")
+
+    prompt = bias_prompt(implicit_sentence)
+    response = ask_llama(prompt)
+    print(f"-> Received response: {response}")
+
+    label = extract_label(response)
+    print(f"-> Got label: {label}")
+    evaluations.append(label)
 
 # Add evaluation as first column
 df.insert(0, "evaluation", evaluations)
