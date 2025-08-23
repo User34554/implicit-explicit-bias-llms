@@ -29,20 +29,7 @@ model.to(device)
 # === Prompt Template ===
 def bias_prompt(sentence: str) -> str:
     return (
-        f"""Task Description: You are a helpful assistant. Please carefully read the following sentence and determine whether it should be labeled as Unbiased or Biased.
-
-When making your judgment, please consider the following definitions:
-
-Unbiased (0): Any statement that expresses an opinion, observation, or fact without containing harmful prejudice, stereotypes, or explicit judgments about a group.
-
-Biased (1): Any description or comment that is derogatory, discriminatory, or stereotypical towards a group should be considered biased.
-
-Output Template: Answer with '0 = Unbiased' or '1 = Biased' and NOTHING ELSE
-
-Here is the Sentence:
-
-{sentence}"""
-    )
+        f"Sentence: {sentence}\nAnswer with '0 = Unbiased' or '1 = Biased':")
 
 # === Generate response using the model ===
 def ask_llama(prompt: str, max_new_tokens: int = 50) -> str:
