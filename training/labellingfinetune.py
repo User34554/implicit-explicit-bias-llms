@@ -45,7 +45,7 @@ Here is the Sentence:
     )
 
 # === Generate response using the model ===
-def ask_llama(prompt: str, max_new_tokens: int = 200, temperature: float = 0.0) -> str:
+def ask_llama(prompt: str, max_new_tokens: int = 500, temperature: float = 0.0) -> str:
     """
     Generate response from the model using the prompt.
     - max_new_tokens: maximum length of the generated text
@@ -64,9 +64,9 @@ def ask_llama(prompt: str, max_new_tokens: int = 200, temperature: float = 0.0) 
 
 # === Extract label (0/1) ===
 def extract_label(text: str):
-    match = re.search(r'\b[01]\b', text)
-    if match:
-        return int(match.group())
+    matches = re.findall(r'\b[01]\b', text)  # find all 0 or 1
+    if matches:
+        return int(matches[-1])  # take the last one
     else:
         return None
 
