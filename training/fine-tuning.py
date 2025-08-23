@@ -1,188 +1,139 @@
-# =========================================
-# LLaMA 3.1 8B LoRA Classification of Excel Bias Data
-# =========================================
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from datasets import load_dataset, DatasetDict
-from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments, BitsAndBytesConfig
-from peft import LoraConfig, get_peft_model, PeftModel
-from trl import SFTTrainer
+from datasets import Dataset
 import torch
-import time
-from transformers import TrainerCallback
+from transformers import (
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    TrainingArguments,
+    Trainer
+)
+from peft import LoraConfig, get_peft_model
+from sklearn.metrics import accuracy_score, f1_score
 
-# ----------------------------
-# 0. Excel-File upload
-# ----------------------------
-excel_file = "bias_data.xlsx"  # <- mounted volume path
-df = pd.read_excel(excel_file)
-print("DataFrame loaded with shape:", df.shape)
+# -----------------------------
+# 1. Load model + tokenizer
+# -----------------------------
+model_name = "meta-llama/Meta-Llama-3-8B-Instruct"
 
-# Ensure columns are named 'text' and 'label'
-df = df.rename(columns={df.columns[0]: "text", df.columns[1]: "label"})
-
-# ----------------------------
-# 1. Train/Test Split
-# ----------------------------
-train_df, test_df = train_test_split(df, test_size=0.1, random_state=42)
-train_df.to_json("train.json", orient="records", lines=True)
-test_df.to_json("test.json", orient="records", lines=True)
-print("Train/Test split done.")
-
-# ----------------------------
-# 2. Hugging Face Dataset creation
-# ----------------------------
-dataset = DatasetDict({
-    "train": load_dataset("json", data_files="train.json")["train"],
-    "test": load_dataset("json", data_files="test.json")["train"]
-})
-print("Dataset created with train and test splits")
-
-# ----------------------------
-# 3. Set up tokenizer
-# ----------------------------
-model_name = "meta-llama/Meta-Llama-3.1-8B-Instruct"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-tokenizer.pad_token = tokenizer.eos_token  # important for LLaMA
-
-# ----------------------------
-# 4. Format dataset: input_text & target_text
-# ----------------------------
-def formatting_func(ex):
-    return {
-        "input_text": f"Label the following sentence as 0 (Unbiased) or 1 (Biased): {ex['text']}",
-        "target_text": str(ex['label'])
-    }
-
-dataset["train"] = dataset["train"].map(formatting_func)
-dataset["test"] = dataset["test"].map(formatting_func)
-print(f"Dataset: {len(dataset['train'])} training examples, {len(dataset['test'])} test examples")
-
-# ----------------------------
-# 5. LoRA Configuration (with higher dropout & smaller rank for regularization)
-# ----------------------------
-lora_config = LoraConfig(
-    r=32,                   # reduced rank
-    lora_alpha=16,
-    target_modules=["q_proj","v_proj"],  # LLaMA-specific
-    lora_dropout=0.1,       # increased dropout
-    bias="none",
-    task_type="CAUSAL_LM",
-)
-
-# ----------------------------
-# 6. Load model (QLoRA / 4-bit)
-# ----------------------------
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_use_double_quant=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.bfloat16,
-)
+if tokenizer.pad_token is None:
+    tokenizer.pad_token = tokenizer.eos_token
 
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
-    quantization_config=bnb_config,
+    torch_dtype=torch.bfloat16,
     device_map="auto"
 )
 
-# Apply LoRA
-model = get_peft_model(model, lora_config)
-model.gradient_checkpointing_enable()
-model.enable_input_require_grads()
-torch.backends.cuda.matmul.allow_tf32 = True
-torch.backends.cudnn.allow_tf32 = True
+# -----------------------------
+# 2. LoRA config
+# -----------------------------
+peft_config = LoraConfig(
+    r=16,
+    lora_alpha=32,
+    target_modules=["q_proj", "v_proj", "k_proj", "o_proj"],
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM"
+)
+model = get_peft_model(model, peft_config)
 
-# Check trainable parameters
-for name, param in model.named_parameters():
-    if param.requires_grad:
-        print(f"Trainable: {name}")
+# -----------------------------
+# 3. Dataset preparation
+# -----------------------------
+df = pd.read_excel("bias_data.xlsx")
+df = df.rename(columns={"text": "sentence", "label": "label"})
 
-# ----------------------------
-# 7. Training settings (with weight decay, smaller learning rate)
-# ----------------------------
+# Ensure labels are strings ("0" / "1")
+df["label"] = df["label"].astype(str)
+
+dataset = Dataset.from_pandas(df)
+dataset = dataset.train_test_split(test_size=0.2, seed=42)
+
+# Format for fine-tuning
+def format_example(example):
+    prompt = f"Sentence:\n{example['sentence']}\nLabel:"
+    completion = example["label"]  # "0" or "1"
+    return {"prompt": prompt, "completion": completion}
+
+dataset = dataset.map(format_example)
+
+# -----------------------------
+# 4. Tokenization
+# -----------------------------
+def tokenize(batch):
+    # concatenate prompt + completion
+    text = batch["prompt"] + " " + batch["completion"]
+    tokenized = tokenizer(
+        text, truncation=True, padding="max_length", max_length=256
+    )
+
+    # mask out loss for prompt tokens
+    labels = tokenized["input_ids"].copy()
+    prompt_len = len(tokenizer(batch["prompt"])["input_ids"])
+    labels[:prompt_len] = [-100] * prompt_len
+    tokenized["labels"] = labels
+
+    return tokenized
+
+train_dataset = dataset["train"].map(tokenize, remove_columns=dataset["train"].column_names)
+eval_dataset = dataset["test"].map(tokenize, remove_columns=dataset["test"].column_names)
+
+# -----------------------------
+# 5. Metrics
+# -----------------------------
+def compute_metrics(eval_pred):
+    logits, labels = eval_pred
+    preds = logits.argmax(-1)
+
+    true_labels = []
+    pred_labels = []
+    for p, l in zip(preds, labels):
+        for pi, li in zip(p, l):
+            if li != -100:
+                true_labels.append(li)
+                pred_labels.append(pi)
+
+    acc = accuracy_score(true_labels, pred_labels)
+    f1 = f1_score(true_labels, pred_labels, average="macro")
+    return {"accuracy": acc, "f1": f1}
+
+# -----------------------------
+# 6. Training
+# -----------------------------
 training_args = TrainingArguments(
-    output_dir="llama8b-lora-bias",
+    output_dir="./llama3-bias-classifier",
     per_device_train_batch_size=2,
+    per_device_eval_batch_size=2,
     gradient_accumulation_steps=8,
-    learning_rate=1e-5,          # smaller learning rate
-    weight_decay=0.01,            # weight decay for regularization
-    num_train_epochs=3,
-    logging_steps=10,
-    save_strategy="epoch",        # keep saving each epoch
-    bf16=True
+    learning_rate=5e-5,   # reduced LR to prevent overfitting
+    weight_decay=0.01,    #  regularization
+    num_train_epochs=5,   # more epochs but with early stopping
+    fp16=False,
+    bf16=True,
+    eval_strategy="epoch",
+    save_strategy="epoch",
+    logging_steps=20,
+    report_to="none",
+    save_total_limit=2,
+    remove_unused_columns=False,
+    load_best_model_at_end=True,
+    metric_for_best_model="accuracy",  # needed for early stopping
+    greater_is_better=True
 )
 
-# ----------------------------
-# 8. Step Timer Callback
-# ----------------------------
-class StepTimer(TrainerCallback):
-    def __init__(self, warmup=10):
-        self.warmup = warmup
-        self.times = []
-        self._t0 = None
-        self.step = 0
-
-    def on_step_begin(self, args, state, control, **kwargs):
-        self._t0 = time.perf_counter()
-
-    def on_step_end(self, args, state, control, **kwargs):
-        dt = time.perf_counter() - self._t0
-        self.step += 1
-        if self.step > self.warmup:
-            self.times.append(dt)
-        if self.step % 10 == 0 and self.times:
-            avg = sum(self.times[-10:]) / min(10, len(self.times))
-            print(f"[Timing] avg step last 10: {avg:.4f}s")
-
-# ----------------------------
-# 9. SFT Trainer with Early Stopping
-# ----------------------------
+# Add early stopping
 from transformers import EarlyStoppingCallback
+callbacks = [EarlyStoppingCallback(early_stopping_patience=2)]
 
-trainer = SFTTrainer(
+trainer = Trainer(
     model=model,
-    train_dataset=dataset["train"],
-    eval_dataset=dataset["test"],
     args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=eval_dataset,
+    tokenizer=tokenizer,
+    compute_metrics=compute_metrics,
+    callbacks=callbacks
 )
 
-#trainer.add_callback(EarlyStoppingCallback(early_stopping_patience=2))  # stop if eval loss does not improve for 2 epochs
-
-# ----------------------------
-# 10. Training start
-# ----------------------------
-print("Starting training...")
 trainer.train()
-print("Training completed.")
-
-# ----------------------------
-# 11. Save model
-# ----------------------------
-model.save_pretrained("llama8b-lora-bias")
-tokenizer.save_pretrained("llama8b-lora-bias")
-print("Model and tokenizer saved to llama8b-lora-bias")
-
-# ----------------------------
-# 12. Load & test model
-# ----------------------------
-print("Loading model for testing...")
-base_model = AutoModelForCausalLM.from_pretrained(
-    model_name,
-    device_map="auto",
-    quantization_config=bnb_config
-)
-model = PeftModel.from_pretrained(base_model, "llama8b-lora-bias")
-
-# Inference
-prompt = "Label the following sentence as 0 (Unbiased) or 1 (Biased): All people from X are lazy."
-inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
-outputs = model.generate(
-    **inputs,
-    max_new_tokens=1,         # generate only 1 token
-    do_sample=False,          # deterministic output
-    eos_token_id=tokenizer.eos_token_id,
-    pad_token_id=tokenizer.eos_token_id
-)
-print("Model output:", tokenizer.decode(outputs[0], skip_special_tokens=True))
-print("Testing completed.")
