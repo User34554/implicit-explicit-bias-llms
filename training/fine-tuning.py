@@ -142,7 +142,7 @@ trainer = SFTTrainer(
     train_dataset=dataset["train"],
     eval_dataset=dataset["test"],
     args=training_args,
-    completion_only_loss=True  # compute loss only on target
+   # completion_only_loss=True  # compute loss only on target
 )
 trainer.add_callback(StepTimer(warmup=10))
 
