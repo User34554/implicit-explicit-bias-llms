@@ -60,7 +60,7 @@ def extract_label(text: str):
         return None
 
 # === Load CSV ===
-df = pd.read_csv("implicit_scenarios_de_llama.csv")
+df = pd.read_csv("implicit_scenarios_en_llama.csv")
 assert df.shape[1] >= 2, "Expected at least 2 columns"
 
 # Initialize result list
