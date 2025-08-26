@@ -41,7 +41,7 @@ model = get_peft_model(model, peft_config)
 # -----------------------------
 # 3. Dataset preparation
 # -----------------------------
-df = pd.read_excel("bias_data.xlsx")
+df = pd.read_excel("bias_data_en.xlsx")
 df = df.rename(columns={df.columns[0]: "sentence", df.columns[1]: "label"})
 
 dataset = Dataset.from_pandas(df)
