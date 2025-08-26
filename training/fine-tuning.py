@@ -93,7 +93,7 @@ class LabelAfterTemplateCollator:
         # Build full texts INCLUDING the gold label so we can teacher-force and compute loss
         texts = [
             f"Sentence:\n{ex.get('sentence', ex.get('text', ''))}\nLabel: {int(ex['label'])}"
-            for ex in batch
+            for ex in examples
         ]
         enc = self.tokenizer(
             texts,
