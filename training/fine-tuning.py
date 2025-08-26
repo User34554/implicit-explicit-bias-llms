@@ -92,7 +92,7 @@ class LabelAfterTemplateCollator:
     def __call__(self, examples: List[Dict[str, Any]]) -> Dict[str, torch.Tensor]:
         # Build full texts INCLUDING the gold label so we can teacher-force and compute loss
         texts = [
-            f"Sentence:\n{ex['sentence']}\nLabel: {int(ex['label'])}"
+            f"Sentence:\n{ex['text']}\nLabel: {int(ex['label'])}"
             for ex in examples
         ]
         enc = self.tokenizer(
