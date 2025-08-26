@@ -61,30 +61,27 @@ dataset = dataset.map(format_example)
 # 5. Tokenization
 # -----------------------------
 def tokenize(batch):
-    # Tokenize prompt + completion
+    # Join prompt + completion before tokenization
+    texts = [p + " " + c for p, c in zip(batch["prompt"], batch["completion"])]
     tokenized = tokenizer(
-        batch["prompt"],
-        batch["completion"],
+        texts,
         truncation=True,
         padding="max_length",
         max_length=512,
     )
 
-    # Mask prompt tokens in labels
+    # Mask prompt part in labels
     labels = []
-    for i, (p, c) in enumerate(zip(batch["prompt"], batch["completion"])):
-        prompt_ids = tokenizer(p, truncation=True)["input_ids"]
-        completion_ids = tokenizer(c, truncation=True)["input_ids"]
-        full_ids = prompt_ids + completion_ids
-        # Pad/truncate to max_length
-        if len(full_ids) < 512:
-            full_ids += [tokenizer.pad_token_id] * (512 - len(full_ids))
-        else:
-            full_ids = full_ids[:512]
+    for p, c in zip(batch["prompt"], batch["completion"]):
+        full_text = p + " " + c
+        ids = tokenizer(full_text, truncation=True, padding="max_length", max_length=512)["input_ids"]
 
-        # Mask prompt tokens
-        full_ids[:len(prompt_ids)] = [-100] * len(prompt_ids)
-        labels.append(full_ids)
+        # Mask out prompt tokens
+        prompt_ids = tokenizer(p, truncation=True)["input_ids"]
+        label_ids = ids[:]
+        label_ids[:len(prompt_ids)] = [-100] * len(prompt_ids)
+
+        labels.append(label_ids)
 
     tokenized["labels"] = labels
     return tokenized
