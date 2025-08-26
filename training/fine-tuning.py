@@ -70,15 +70,14 @@ def tokenize(batch):
     )
 
     labels = []
-    for p, c in zip(batch["prompt"], batch["completion"]):
-        full_text = p + " " + c
-        tokenized_full = tokenizer(
-            full_text, truncation=True, padding="max_length", max_length=512
-        )["input_ids"]
+    for i, (p, c) in enumerate(zip(batch["prompt"], batch["completion"])):
+        # copy input_ids
+        label_ids = tokenized["input_ids"][i][:]
 
-        # compute prompt length consistently
+        # find where prompt ends
         prompt_len = len(tokenizer(p, truncation=True, max_length=512)["input_ids"])
-        label_ids = tokenized_full[:]
+
+        # mask out prompt tokens
         label_ids[:prompt_len] = [-100] * prompt_len
 
         labels.append(label_ids)
