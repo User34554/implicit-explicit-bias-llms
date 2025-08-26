@@ -61,7 +61,6 @@ dataset = dataset.map(format_example)
 # 5. Tokenization
 # -----------------------------
 def tokenize(batch):
-    # Join prompt + completion before tokenization
     texts = [p + " " + c for p, c in zip(batch["prompt"], batch["completion"])]
     tokenized = tokenizer(
         texts,
@@ -70,16 +69,17 @@ def tokenize(batch):
         max_length=512,
     )
 
-    # Mask prompt part in labels
     labels = []
     for p, c in zip(batch["prompt"], batch["completion"]):
         full_text = p + " " + c
-        ids = tokenizer(full_text, truncation=True, padding="max_length", max_length=512)["input_ids"]
+        tokenized_full = tokenizer(
+            full_text, truncation=True, padding="max_length", max_length=512
+        )["input_ids"]
 
-        # Mask out prompt tokens
-        prompt_ids = tokenizer(p, truncation=True)["input_ids"]
-        label_ids = ids[:]
-        label_ids[:len(prompt_ids)] = [-100] * len(prompt_ids)
+        # compute prompt length consistently
+        prompt_len = len(tokenizer(p, truncation=True, max_length=512)["input_ids"])
+        label_ids = tokenized_full[:]
+        label_ids[:prompt_len] = [-100] * prompt_len
 
         labels.append(label_ids)
 
@@ -145,11 +145,16 @@ tokenizer.save_pretrained("llama3-bias-lora")
 # -----------------------------
 prompt = "Sentence:\nAll people from X are lazy.\nLabel:"
 inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
-outputs = model.generate(
-    **inputs,
-    max_new_tokens=1,   # generate only the label
-    do_sample=False,
-    eos_token_id=tokenizer.eos_token_id,
-    pad_token_id=tokenizer.pad_token_id
-)
-print("Predicted label:", tokenizer.decode(outputs[0], skip_special_tokens=True))
+
+with torch.no_grad():
+    outputs = model.generate(
+        **inputs,
+        max_new_tokens=1,   # only want the label (0 or 1)
+        do_sample=False,
+        eos_token_id=tokenizer.eos_token_id,
+        pad_token_id=tokenizer.pad_token_id
+    )
+
+# Slice off the prompt
+generated = outputs[0][inputs["input_ids"].shape[1]:]
+print("Predicted label:", tokenizer.decode(generated, skip_special_tokens=True))
