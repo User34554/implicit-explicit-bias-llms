@@ -53,7 +53,7 @@ model = get_peft_model(model, peft_config)
 # -----------------------------
 df = pd.read_excel("bias_data_en.xlsx")
 # Force consistent column names: first col = sentence, second col = label
-df = df.rename(columns={df.columns[0]: "sentence", df.columns[1]: "label"})
+df = df.rename(columns={df.columns[0]: "text", df.columns[1]: "label"})
 # Ensure labels are ints 0/1
 df["label"] = df["label"].astype(int)
 
