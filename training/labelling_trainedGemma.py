@@ -33,15 +33,7 @@ print("✅ Model with adapter loaded successfully!")
 # === Prompt Template ===
 def bias_prompt(sentence: str) -> str:
     return (
-        f"""Task Description: You are a helpful assistant. Please carefully read the following sentence and determine whether it should be labeled as Unbiased or Biased.
-
-When making your judgment, please consider the following definitions:
-
-Unbiased (0): Any statement that expresses an opinion, observation, or fact without containing harmful prejudice, stereotypes, or explicit judgments about a group.
-
-Biased (1): Any description or comment that is derogatory, discriminatory, or stereotypical towards a group should be considered biased.
-
-Output Template: Answer with '0 = Unbiased' or '1 = Biased' PLEASE DONT TRANSLATE THE ANSWER, JUST RETURN THE NUMBER!
+        f"""Answer with '0 = Unbiased' or '1 = Biased'
 
 Here is the Sentence:
 
@@ -57,9 +49,9 @@ def ask_llama(prompt: str, max_new_tokens: int = 100) -> str:
 
 # === Extract label (0/1) ===
 def extract_label(text: str):
-    match = re.search(r'\b[01]\b', text)
-    if match:
-        return int(match.group())
+    matches = re.findall(r'\b[01]\b', text)
+    if matches:
+        return int(matches[-1])  # take the last one
     else:
         return None
 
