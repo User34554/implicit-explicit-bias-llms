@@ -5,16 +5,30 @@ import pandas as pd
 import re
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
+from peft import PeftModel
 
-# Path to your trained folder (one of the output_dir folders from DPO training)
-model_folder = "./bias_en_Llama-3-8B-Lexi-Uncensored_dpo_ep3"  # e.g., "./bias_en_Wizard-Vicuna-7B-Uncensored_dpo_ep3"
+# Paths
+base_model = "Orenguteng/Llama-3-8B-Lexi-Uncensored"  # base model from HF Hub
+adapter_path = "./bias_en_Llama-3-8B-Lexi-Uncensored_dpo_ep3"  # folder with adapter_config.json
 
-# Load tokenizer and model directly from folder
-tokenizer = AutoTokenizer.from_pretrained(model_folder)
-model = AutoModelForCausalLM.from_pretrained(model_folder, device_map="auto", torch_dtype=torch.float16)
+# Load tokenizer
+tokenizer = AutoTokenizer.from_pretrained(base_model)
+
+# Load base model
+model = AutoModelForCausalLM.from_pretrained(
+    base_model,
+    device_map="auto",
+    torch_dtype=torch.float16
+)
+
+# Apply LoRA adapter
+model = PeftModel.from_pretrained(model, adapter_path)
 model.eval()
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
+
+print("✅ Model with adapter loaded successfully!")
 
 # === Prompt Template ===
 def bias_prompt(sentence: str) -> str:
