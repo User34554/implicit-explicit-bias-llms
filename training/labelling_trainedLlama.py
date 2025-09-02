@@ -41,17 +41,19 @@ Here is the Sentence:
     )
 
 # === Generate response using the model ===
-def ask_llama(prompt: str, max_new_tokens: int = 100) -> str:
+def ask_llama(prompt: str, max_new_tokens: int = 150) -> str:
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
     with torch.no_grad():
         output_ids = model.generate(**inputs, max_new_tokens=max_new_tokens)
     return tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
 # === Extract label (0/1) ===
+import re
+
 def extract_label(text: str):
-    match = re.search(r'\b[01]\b', text)
-    if match:
-        return int(match.group())
+    matches = re.findall(r'\b[01]\b', text)
+    if matches:
+        return int(matches[-1])  # take the last one
     else:
         return None
 
