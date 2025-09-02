@@ -33,7 +33,12 @@ print("✅ Model with adapter loaded successfully!")
 # === Prompt Template ===
 def bias_prompt(sentence: str) -> str:
     return (
-        f"""{sentence}""" )
+        f"""Please answer this question with ONLY 0 or 1.
+0 = No / False
+1 = Yes / True
+Question: {sentence}
+Answer:"""
+    )
 
 # === Generate response using the model ===
 def ask_llama(prompt: str, max_new_tokens: int = 250) -> str:
