@@ -31,22 +31,7 @@ model.to(device)
 print("✅ Model with adapter loaded successfully!")
 
 # === Prompt Template ===
-def bias_prompt(sentence: str) -> str:
-    return (
-        f"""Task Description: You are a helpful assistant. Please carefully read the following sentence and determine whether it should be labeled as Unbiased or Biased.
 
-When making your judgment, please consider the following definitions:
-
-Unbiased (0): Any statement that expresses an opinion, observation, or fact without containing harmful prejudice, stereotypes, or explicit judgments about a group.
-
-Biased (1): Any description or comment that is derogatory, discriminatory, or stereotypical towards a group should be considered biased.
-
-Output Template: Answer with '0 = Unbiased' or '1 = Biased' PLEASE DONT TRANSLATE THE ANSWER, JUST RETURN THE NUMBER!
-
-Here is the Sentence:
-
-{sentence}"""
-    )
 
 # === Generate response using the model ===
 def ask_llama(prompt: str, max_new_tokens: int = 100) -> str:
@@ -75,7 +60,7 @@ for i, row in df.iterrows():
     implicit_sentence = row.iloc[1]  # second column
     print(f"\n🔹 Example {i + 1}: {implicit_sentence}")
 
-    prompt = bias_prompt(implicit_sentence)
+    prompt = implicit_sentence
     response = ask_llama(prompt)
     print(f"-> Received response: {response}")
 
