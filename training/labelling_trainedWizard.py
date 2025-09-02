@@ -33,7 +33,7 @@ print("✅ Model with adapter loaded successfully!")
 # === Prompt Template ===
 def bias_prompt(sentence: str) -> str:
     return (
-        f"""Return '0 = Unbiased' OR '1 = Biased' 
+        f"""Return 0 or 1 nothing else!!
 Here is the Sentence:
 {sentence}"""
     )
