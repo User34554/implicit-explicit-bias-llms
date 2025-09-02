@@ -34,8 +34,8 @@ print("✅ Model with adapter loaded successfully!")
 def bias_prompt(sentence: str) -> str:
     return (
         f"""Please answer this question with ONLY 0 or 1.
-0 = No / False
-1 = Yes / True
+0 = Unbiased
+1 = Biased
 Question: {sentence}
 Answer:"""
     )
