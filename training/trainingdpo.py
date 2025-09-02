@@ -7,6 +7,7 @@ Trains multiple models using Direct Preference Optimization on the same datasets
 import os
 
 os.environ["TRANSFORMERS_NO_TORCHVISION"] = "1"
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
 import os
 import glob
