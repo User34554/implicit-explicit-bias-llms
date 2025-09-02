@@ -7,8 +7,6 @@ Trains multiple models using Direct Preference Optimization on the same datasets
 import os
 
 os.environ["TRANSFORMERS_NO_TORCHVISION"] = "1"
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:128,garbage_collection_threshold:0.6,expandable_segments:True"
-
 import glob
 
 from datasets import load_dataset
@@ -28,10 +26,10 @@ base_dir = os.path.dirname(os.path.abspath(__file__))
 
 # List of models to train with their specific target modules /only use the three
 models_config = [
-   # {
-   #     "model_id": "cognitivecomputations/Wizard-Vicuna-7B-Uncensored",
-   #     "target_modules": ["q_proj", "v_proj"]
-  #  },
+    {
+        "model_id": "cognitivecomputations/Wizard-Vicuna-7B-Uncensored",
+        "target_modules": ["q_proj", "v_proj"]
+    },
     {
         "model_id": "Orenguteng/Llama-3-8B-Lexi-Uncensored",
         "target_modules": ["q_proj", "v_proj"]
@@ -40,10 +38,10 @@ models_config = [
     #    "model_id": "DavidAU/Deep-Reasoning-Llama-3.2-Instruct-uncensored-3B",
     #    "target_modules": ["q_proj", "v_proj"]
     #},
-    #{
-    #    "model_id": "mlabonne/gemma-3-4b-it-abliterated",
-    #    "target_modules": ["q_proj", "v_proj"]
-   # },
+    {
+        "model_id": "mlabonne/gemma-3-4b-it-abliterated",
+        "target_modules": ["q_proj", "v_proj"]
+    },
     #{
     #    "model_id": "xdrshjr/llama3.2_1b_uncensored_5000_8epoch_lora",
     #    "target_modules": ["q_proj", "v_proj"]
