@@ -41,7 +41,7 @@ Answer:"""
     )
 
 # === Generate response using the model ===
-def ask_llama(prompt: str, max_new_tokens: int = 150) -> str:
+def ask_llama(prompt: str, max_new_tokens: int = 350) -> str:
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
     with torch.no_grad():
         output_ids = model.generate(**inputs, max_new_tokens=max_new_tokens)
