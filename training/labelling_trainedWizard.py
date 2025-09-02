@@ -66,7 +66,7 @@ for i, row in df.iterrows():
     implicit_sentence = row.iloc[1]  # second column
     print(f"\n🔹 Example {i + 1}: {implicit_sentence}")
 
-    prompt = bias_prompt(implicit_sentence)
+    prompt = implicit_sentence
     response = ask_llama(prompt)
     print(f"-> Received response: {response}")
 
