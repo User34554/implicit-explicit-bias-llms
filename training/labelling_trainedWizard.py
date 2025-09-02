@@ -33,9 +33,8 @@ print("✅ Model with adapter loaded successfully!")
 # === Prompt Template ===
 def bias_prompt(sentence: str) -> str:
     return (
-        f"""Return '0 = Unbiased' or '1 = Biased' and nothing else
+        f"""Return '0 = Unbiased' OR '1 = Biased' 
 Here is the Sentence:
-
 {sentence}"""
     )
 
@@ -66,7 +65,7 @@ for i, row in df.iterrows():
     implicit_sentence = row.iloc[1]  # second column
     print(f"\n🔹 Example {i + 1}: {implicit_sentence}")
 
-    prompt = implicit_sentence
+    prompt = bias_prompt(implicit_sentence)
     response = ask_llama(prompt)
     print(f"-> Received response: {response}")
 
