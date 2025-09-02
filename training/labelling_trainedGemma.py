@@ -8,8 +8,8 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
 
 # Paths
-base_model = "Orenguteng/Llama-3-8B-Lexi-Uncensored"  # base model from HF Hub
-adapter_path = "./bias_en_Llama-3-8B-Lexi-Uncensored_dpo_ep3"  # folder with adapter_config.json
+base_model = "mlabonne/gemma-3-4b-it-abliterated"  # base model from HF Hub
+adapter_path = "./bias_en_gemma-3-4b-it-abliterated_dpo_ep3"  # folder with adapter_config.json
 
 # Load tokenizer
 tokenizer = AutoTokenizer.from_pretrained(base_model)
