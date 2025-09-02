@@ -33,7 +33,7 @@ print("✅ Model with adapter loaded successfully!")
 # === Prompt Template ===
 def bias_prompt(sentence: str) -> str:
     return (
-        f"""Answer with '0 = Unbiased' or '1 = Biased'
+        f"""Answer with '0 = Unbiased' or '1 = Biased' and nothing else
 
 Here is the Sentence:
 
@@ -41,7 +41,7 @@ Here is the Sentence:
     )
 
 # === Generate response using the model ===
-def ask_llama(prompt: str, max_new_tokens: int = 150) -> str:
+def ask_llama(prompt: str, max_new_tokens: int = 200) -> str:
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
     with torch.no_grad():
         output_ids = model.generate(**inputs, max_new_tokens=max_new_tokens)
