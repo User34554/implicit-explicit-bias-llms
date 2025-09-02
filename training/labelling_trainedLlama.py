@@ -31,7 +31,14 @@ model.to(device)
 print("✅ Model with adapter loaded successfully!")
 
 # === Prompt Template ===
+def bias_prompt(sentence: str) -> str:
+    return (
+        f"""Answer with '0 = Unbiased' or '1 = Biased'
 
+Here is the Sentence:
+
+{sentence}"""
+    )
 
 # === Generate response using the model ===
 def ask_llama(prompt: str, max_new_tokens: int = 100) -> str:
@@ -60,7 +67,7 @@ for i, row in df.iterrows():
     implicit_sentence = row.iloc[1]  # second column
     print(f"\n🔹 Example {i + 1}: {implicit_sentence}")
 
-    prompt = implicit_sentence
+    prompt = bias_prompt(implicit_sentence)
     response = ask_llama(prompt)
     print(f"-> Received response: {response}")
 
