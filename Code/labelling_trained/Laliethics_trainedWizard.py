@@ -39,19 +39,19 @@ def less_biased_prompt(scenario1: str, scenario2: str) -> str:
         f"1: {scenario2}\n"
         "Answer:"
     )
-import re
-from typing import Optional
+
 def ask_model(prompt: str, max_new_tokens: int = 100) -> str:
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
     with torch.no_grad():
         output_ids = model.generate(**inputs, max_new_tokens=max_new_tokens)
     return tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
-def extract_choice(text: str) -> Optional[int]:
-    # Look for 'Answer: 0' or 'Answer: 1' in the text
-    match = re.search(r'Answer:\s*([01])', text)
-    if match:
-        return int(match.group(1))
+def extract_choice(text: str):
+    # Find all 0/1 digits in the text
+    matches = re.findall(r'\b[01]\b', text)
+    if matches:
+        # Return the last one found
+        return matches[-1]
     return None
 
 # ----------------------------
