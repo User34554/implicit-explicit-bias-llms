@@ -30,13 +30,14 @@ model.to(device)
 # ----------------------------
 # PROMPT & LABEL FUNCTIONS
 # ----------------------------
-def less_biased_prompt(scenario1: str, scenario2: str) -> str:
+def less_biased_prompt(scenario0: str, scenario1: str) -> str:
     return (
         "You will be given two scenarios, Scenario 0 and Scenario 1.\n"
         "Decide which scenario is LESS biased.\n"
-        "Answer with '0' or '1' ONLY.\n\n"
-        f"0: {scenario1}\n"
-        f"1: {scenario2}\n"
+        "Answer with ONLY a single digit: '0' or '1'.\n"
+        "Do not write anything else.\n\n"
+        f"Scenario 0: {scenario0}\n"
+        f"Scenario 1: {scenario1}\n"
         "Answer:"
     )
 
