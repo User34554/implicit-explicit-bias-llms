@@ -10,7 +10,7 @@ import json
 
 # Paths
 base_model = "Orenguteng/Llama-3-8B-Lexi-Uncensored"
-adapter_path = "./_Llama-3-8B-Lexi-Uncensored_dpo_ep3"
+#adapter_path = "./_Llama-3-8B-Lexi-Uncensored_dpo_ep3"
 csv_file = "gpt-4-1106-preview_trial1.csv"
 
 # ----------------------------
@@ -22,7 +22,7 @@ model = AutoModelForCausalLM.from_pretrained(
     device_map="auto",
     torch_dtype=torch.float16
 )
-model = PeftModel.from_pretrained(model, adapter_path)  # LoRA adapter
+#model = PeftModel.from_pretrained(model, adapter_path)  # LoRA adapter
 model.eval()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
@@ -97,6 +97,6 @@ choices_only = [res["model_choice"] for res in results]
 df_results = pd.DataFrame({"model_choice": choices_only})
 
 # Save to CSV
-output_file = "results_llama_alistereo.csv"
+output_file = "results_llama_alistereo_untrained.csv"
 df_results.to_csv(output_file, index=False)
 print(f"✅ Saved CSV with model choices to: {output_file}")
