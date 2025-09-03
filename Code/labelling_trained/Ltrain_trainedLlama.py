@@ -49,9 +49,9 @@ def ask_model(prompt: str, max_new_tokens: int = 150) -> str:
 
 
 def extract_choice(text: str):
-    match = re.search(r'\b[01]\b', text)
+    match = re.search(r'([01])', text)  # match first occurrence of 0 or 1
     if match:
-        return match.group(0).upper()
+        return match.group(1)
     return None
 
 
