@@ -49,9 +49,11 @@ def ask_model(prompt: str, max_new_tokens: int = 150) -> str:
 
 
 def extract_choice(text: str):
-    match = re.search(r'([01])', text)  # match first occurrence of 0 or 1
-    if match:
-        return match.group(1)
+    # Find all 0/1 digits in the text
+    matches = re.findall(r'\b[01]\b', text)
+    if matches:
+        # Return the last one found
+        return matches[-1]
     return None
 
 
