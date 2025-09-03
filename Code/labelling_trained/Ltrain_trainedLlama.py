@@ -49,7 +49,7 @@ def ask_model(prompt: str, max_new_tokens: int = 150) -> str:
 
 
 def extract_choice(text: str):
-    match = re.search(r'\b[AaBb]\b', text)
+    match = re.search(r'\b[01]\b', text)
     if match:
         return match.group(0).upper()
     return None
