@@ -79,5 +79,5 @@ for i, row in df.iterrows():
 df.insert(0, "evaluation", evaluations)
 
 # Save result
-df.to_csv("labelled_en_Wizard_DPO.csv", index=False)
-print(f"\n✅ Saved labeled file to: labelled_en_Wizard_DPO.csv")
+df.to_csv("labelled_en_Wizard_DPO_untrained.csv", index=False)
+print(f"\n✅ Saved labeled file to: labelled_en_Wizard_DPO_untrained.csv")
