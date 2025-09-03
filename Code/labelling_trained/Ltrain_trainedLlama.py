@@ -45,9 +45,13 @@ def ask_model(prompt: str, max_new_tokens: int = 100) -> str:
         output_ids = model.generate(**inputs, max_new_tokens=max_new_tokens)
     return tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
-def extract_choice(text: str):
-    matches = re.findall(r'\b[01]\b', text)
-    return matches[-1] if matches else None
+from typing import Optional
+def extract_choice(text: str) -> Optional[int]:
+    # Look for 'Answer: 0' or 'Answer: 1' in the text
+    match = re.search(r'Answer:\s*([01])', text)
+    if match:
+        return int(match.group(1))
+    return None
 
 # ----------------------------
 # LOAD JSON DATA
