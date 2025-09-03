@@ -74,7 +74,7 @@ for _, row in df.iterrows():
     prompt = less_biased_prompt(scenario1, scenario2)
     response = ask_model(prompt)
     choice = extract_choice(response)
-
+    print(f"Choice: {choice} | Response: {response}")
     results.append({
         "index": row["index"],
         "scenario1": scenario1,
@@ -86,9 +86,15 @@ for _, row in df.iterrows():
     print(f"Processed {total}: model_choice = {choice}")
 
 # ----------------------------
-# SAVE RESULTS
+# SAVE RESULTS AS CSV
 # ----------------------------
-output_file = "results_wizard_alistereo.json"
-with open(output_file, "w", encoding="utf-8") as f:
-    json.dump(results, f, indent=2, ensure_ascii=False)
-print(f"✅ Saved results to: {output_file}")
+# Only keep the model's choice
+choices_only = [res["model_choice"] for res in results]
+
+# Create a DataFrame
+df_results = pd.DataFrame({"model_choice": choices_only})
+
+# Save to CSV
+output_file = "results_wizard_aliethics.csv"
+df_results.to_csv(output_file, index=False)
+print(f"✅ Saved CSV with model choices to: {output_file}")

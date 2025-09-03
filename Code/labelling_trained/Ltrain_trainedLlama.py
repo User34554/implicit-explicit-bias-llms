@@ -4,7 +4,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from peft import PeftModel  # uncomment if using LoRA
-
+import pandas as pd
 # ----------------------------
 # CONFIG
 # ----------------------------
@@ -75,7 +75,7 @@ for i, entry in enumerate(data):
     prompt = bias_prompt_pairwise(chosen_text, rejected_text)
     response = ask_model(prompt)
     choice = extract_choice(response)
-
+    print(f"Choice: {choice} | Response: {response}")
     is_correct = choice == "B"  # B = rejected sentence = more biased
     correct += int(is_correct)
     total += 1
@@ -97,9 +97,15 @@ accuracy = correct / total * 100
 print(f"\n✅ Pairwise accuracy: {accuracy:.2f}%")
 
 # ----------------------------
-# SAVE RESULTS
+# SAVE RESULTS AS CSV
 # ----------------------------
-output_file = "results_lama_test.json"
-with open(output_file, "w", encoding="utf-8") as f:
-    json.dump(results, f, indent=2, ensure_ascii=False)
-print(f"✅ Saved detailed results to: {output_file}")
+# Only keep the model's choice
+choices_only = [res["model_choice"] for res in results]
+
+# Create a DataFrame
+df_results = pd.DataFrame({"model_choice": choices_only})
+
+# Save to CSV
+output_file = "results_llama_test.csv"
+df_results.to_csv(output_file, index=False)
+print(f"✅ Saved CSV with model choices to: {output_file}")

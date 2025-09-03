@@ -73,10 +73,7 @@ for _, row in df.iterrows():
     prompt = biased_or_unbiased_prompt(sentence)
     response = ask_model(prompt)
     model_label = extract_label(response)
-
-    if model_label is None:
-        continue  # skip if model did not output proper label
-
+    print(f"Choice: {model_label} | Response: {response}")
     is_correct = model_label == int(human_label)
     correct += int(is_correct)
     total += 1
@@ -97,9 +94,15 @@ accuracy = correct / total * 100 if total > 0 else 0
 print(f"\n✅ Accuracy on third dataset: {accuracy:.2f}%")
 
 # ----------------------------
-# SAVE RESULTS
+# SAVE RESULTS AS CSV
 # ----------------------------
-output_file = "results_third_Llama.json"
-with open(output_file, "w", encoding="utf-8") as f:
-    json.dump(results, f, indent=2, ensure_ascii=False)
-print(f"✅ Saved results to: {output_file}")
+# Only keep the model's choice
+choices_only = [res["model_label"] for res in results]
+
+# Create a DataFrame
+df_results = pd.DataFrame({"model_choice": choices_only})
+
+# Save to CSV
+output_file = "results_llama_third.csv"
+df_results.to_csv(output_file, index=False)
+print(f"✅ Saved CSV with model choices to: {output_file}")
