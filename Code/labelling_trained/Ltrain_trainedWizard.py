@@ -11,7 +11,7 @@ import json
 # Paths
 base_model = "cognitivecomputations/Wizard-Vicuna-7B-Uncensored"  # base model from HF Hub
 adapter_path = "./_Wizard-Vicuna-7B-Uncensored_dpo_ep3"  # folder with adapter_config.json
-json_file = "bias_de_train.json"
+json_file = "test.json"
 
 # ----------------------------
 # LOAD MODEL

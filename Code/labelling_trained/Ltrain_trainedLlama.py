@@ -10,7 +10,7 @@ import pandas as pd
 # ----------------------------
 base_model = "Orenguteng/Llama-3-8B-Lexi-Uncensored"
 adapter_path = "./_Llama-3-8B-Lexi-Uncensored_dpo_ep3"
-json_file = "bias_de_train.json"
+json_file = "test.json"
 
 # ----------------------------
 # LOAD MODEL
