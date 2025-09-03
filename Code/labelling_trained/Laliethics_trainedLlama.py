@@ -10,7 +10,7 @@ import json
 
 # Paths
 base_model = "Orenguteng/Llama-3-8B-Lexi-Uncensored"
-adapter_path = "./bias_en_Llama-3-8B-Lexi-Uncensored_dpo_ep3"
+adapter_path = "./_Llama-3-8B-Lexi-Uncensored_dpo_ep3"
 csv_file = "gpt-4-1106-preview_trial0.csv"
 
 # ----------------------------

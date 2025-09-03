@@ -9,7 +9,7 @@ import pandas as pd
 # CONFIG
 # ----------------------------
 base_model = "Orenguteng/Llama-3-8B-Lexi-Uncensored"
-adapter_path = "./bias_en_Llama-3-8B-Lexi-Uncensored_dpo_ep3"
+adapter_path = "./_Llama-3-8B-Lexi-Uncensored_dpo_ep3"
 json_file = "bias_de_train.json"
 
 # ----------------------------

@@ -10,7 +10,7 @@ import json
 
 # Paths
 base_model = "cognitivecomputations/Wizard-Vicuna-7B-Uncensored"
-adapter_path = "./bias_en_Wizard-Vicuna-7B-Uncensored_dpo_ep3"
+adapter_path = "./_Wizard-Vicuna-7B-Uncensored_dpo_ep3"
 excel_file = "dataset_third.xlsx"
 
 # ----------------------------
