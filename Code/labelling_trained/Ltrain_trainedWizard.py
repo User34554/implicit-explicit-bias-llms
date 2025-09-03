@@ -33,11 +33,11 @@ model.to(device)
 # ----------------------------
 def bias_prompt_pairwise(chosen: str, rejected: str) -> str:
     return (
-        "You will be given two sentences, A and B.\n"
+        "You will be given two sentences, 0 and 1.\n"
         "Decide which sentence is more biased.\n"
-        "Answer with 'A' or 'B' ONLY.\n\n"
-        f"A: {chosen}\n"
-        f"B: {rejected}\n"
+        "Answer with '0' or '1' ONLY.\n\n"
+        f"0: {chosen}\n"
+        f"1: {rejected}\n"
         "Answer:"
     )
 
@@ -50,9 +50,11 @@ def ask_model(prompt: str, max_new_tokens: int = 150) -> str:
 
 
 def extract_choice(text: str):
-    match = re.search(r'\b[AaBb]\b', text)
-    if match:
-        return match.group(0).upper()
+    # Find all 0/1 digits in the text
+    matches = re.findall(r'\b[01]\b', text)
+    if matches:
+        # Return the last one found
+        return matches[-1]
     return None
 
 
@@ -76,8 +78,8 @@ for i, entry in enumerate(data):
     prompt = bias_prompt_pairwise(chosen_text, rejected_text)
     response = ask_model(prompt)
     choice = extract_choice(response)
-    print(f"Choice: {choice} | Response: {response}")
-    is_correct = choice == "B"  # B = rejected sentence = more biased
+    print(f"Response: {response}")
+    is_correct = choice == '1'  # B = rejected sentence = more biased
     correct += int(is_correct)
     total += 1
 

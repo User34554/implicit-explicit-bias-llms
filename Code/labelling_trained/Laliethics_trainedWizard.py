@@ -47,9 +47,11 @@ def ask_model(prompt: str, max_new_tokens: int = 100) -> str:
     return tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
 def extract_choice(text: str):
-    match = re.search(r'\b[12]\b', text)
-    if match:
-        return match.group(0)
+    # Find all 0/1 digits in the text
+    matches = re.findall(r'\b[12]\b', text)
+    if matches:
+        # Return the last one found
+        return matches[-1]
     return None
 
 # ----------------------------

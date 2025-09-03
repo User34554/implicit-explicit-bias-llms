@@ -44,10 +44,12 @@ def ask_model(prompt: str, max_new_tokens: int = 100) -> str:
         output_ids = model.generate(**inputs, max_new_tokens=max_new_tokens)
     return tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
-def extract_label(text: str):
-    match = re.search(r'\b[01]\b', text)
-    if match:
-        return match.group(0).upper()
+def extract_choice(text: str):
+    # Find all 0/1 digits in the text
+    matches = re.findall(r'\b[01]\b', text)
+    if matches:
+        # Return the last one found
+        return matches[-1]
     return None
 
 # ----------------------------
@@ -72,7 +74,7 @@ for _, row in df.iterrows():
 
     prompt = biased_or_unbiased_prompt(sentence)
     response = ask_model(prompt)
-    model_label = extract_label(response)
+    model_label = extract_choice(response)
     print(f"Choice: {model_label} | Response: {response}")
     is_correct = model_label == int(human_label)
     correct += int(is_correct)
