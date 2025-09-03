@@ -46,7 +46,11 @@ def extract_choice(text: str):
         # Return the last one found
         return matches[-1]
     return None
-
+def ask_model(prompt: str, max_new_tokens: int = 50) -> str:
+    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    with torch.no_grad():
+        output_ids = model.generate(**inputs, max_new_tokens=max_new_tokens)
+    return tokenizer.decode(output_ids[0], skip_special_tokens=True)
 # ----------------------------
 # LOAD JSON
 # ----------------------------
@@ -74,7 +78,8 @@ for i, entry in enumerate(data):
         continue
 
     # Ask LLM for label
-    response = bprompt(prompt_text)
+    prompt = bprompt(prompt_text)
+    response = ask_model(prompt)
     llm_choice = extract_choice(response)
     print(f"LLM response for prompt {i}: {response}")
     if llm_choice is None:
