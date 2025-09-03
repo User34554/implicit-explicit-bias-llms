@@ -9,7 +9,7 @@ from peft import PeftModel
 
 # Paths
 base_model = "cognitivecomputations/Wizard-Vicuna-7B-Uncensored"  # base model from HF Hub
-adapter_path = "./bias_en_Wizard-Vicuna-7B-Uncensored_dpo_ep3"  # folder with adapter_config.json
+#adapter_path = "./bias_en_Wizard-Vicuna-7B-Uncensored_dpo_ep3"  # folder with adapter_config.json
 
 # Load tokenizer
 tokenizer = AutoTokenizer.from_pretrained(base_model)
@@ -22,7 +22,7 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 # Apply LoRA adapter
-model = PeftModel.from_pretrained(model, adapter_path)
+#model = PeftModel.from_pretrained(model, adapter_path)
 model.eval()
 
 device = "cuda" if torch.cuda.is_available() else "cpu"

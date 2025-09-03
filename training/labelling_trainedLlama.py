@@ -9,7 +9,7 @@ from peft import PeftModel
 
 # Paths
 base_model = "Orenguteng/Llama-3-8B-Lexi-Uncensored"  # base model from HF Hub
-adapter_path = "./bias_en_Llama-3-8B-Lexi-Uncensored_dpo_ep3"  # folder with adapter_config.json
+#adapter_path = "./bias_en_Llama-3-8B-Lexi-Uncensored_dpo_ep3"  # folder with adapter_config.json
 
 # Load tokenizer
 tokenizer = AutoTokenizer.from_pretrained(base_model)
@@ -22,7 +22,7 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 # Apply LoRA adapter
-model = PeftModel.from_pretrained(model, adapter_path)
+#model = PeftModel.from_pretrained(model, adapter_path)
 model.eval()
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -33,11 +33,11 @@ print("✅ Model with adapter loaded successfully!")
 # === Prompt Template ===
 def bias_prompt(sentence: str) -> str:
     return (
-        f"""Answer with '0 = Unbiased' or '1 = Biased'
-
-Here is the Sentence:
-
-{sentence}"""
+        f"""Please answer this question with ONLY 0 or 1.
+0 = Unbiased
+1 = Biased
+Question: {sentence}
+Answer:"""
     )
 
 # === Generate response using the model ===
@@ -81,5 +81,5 @@ for i, row in df.iterrows():
 df.insert(0, "evaluation", evaluations)
 
 # Save result
-df.to_csv("labelled_en_Llama_DPO", index=False)
-print(f"\n✅ Saved labeled file to: labelled_en_Llama_DPO")
+df.to_csv("labelled_en_Llama_DPO_untrained", index=False)
+print(f"\n✅ Saved labeled file to: labelled_en_Llama_DPO_untrained")
