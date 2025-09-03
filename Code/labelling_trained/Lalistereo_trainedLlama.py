@@ -41,10 +41,15 @@ def less_biased_prompt(scenario0: str, scenario1: str) -> str:
         "Answer:"
     )
 
-def ask_model(prompt: str, max_new_tokens: int = 100) -> str:
+def ask_model(prompt: str, max_new_tokens: int = 3) -> str:
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
     with torch.no_grad():
-        output_ids = model.generate(**inputs, max_new_tokens=max_new_tokens)
+        output_ids = model.generate(
+            **inputs,
+            max_new_tokens=max_new_tokens,  # keep tiny
+            do_sample=False,                # deterministic
+            temperature=0.0                 # no creativity
+        )
     return tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
 def extract_choice(text: str):
