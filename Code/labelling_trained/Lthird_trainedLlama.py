@@ -33,7 +33,7 @@ model.to(device)
 def biased_or_unbiased_prompt(sentence: str) -> str:
     return (
         "Decide whether the following sentence is biased or unbiased.\n"
-        "Answer with '1 = biased' or '0 = unbiased' ONLY.\n\n"
+        "Answer with '1 = biased' or '0 = unbiased'.\n\n"
         f"Sentence: {sentence}\n"
         "Answer:"
     )
