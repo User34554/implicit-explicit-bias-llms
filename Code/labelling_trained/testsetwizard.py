@@ -11,7 +11,7 @@ import pandas as pd
 base_model = "cognitivecomputations/Wizard-Vicuna-7B-Uncensored"  # base model from HF Hub
 adapter_path = "./_Wizard-Vicuna-7B-Uncensored_dpo_ep3"  # folder with adapter_config.json
 json_file = "test.json"
-output_file = "results_llama_testset_final.csv"
+output_file = "results_wizard_testset_final.csv"
 
 # ----------------------------
 # LOAD MODEL
