@@ -3,6 +3,11 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
 from pprint import pprint
 
+import os
+
+checkpoint_path = "_Wizard-Vicuna-7B-Uncensored_dpo_ep3/checkpoint-144"
+print(os.listdir(checkpoint_path))
+
 # ----------------------------
 # CONFIG
 # ----------------------------
@@ -61,8 +66,8 @@ print(f"Trainable parameters: {trainable:,} / {total:,} "
       f"({100 * trainable / total:.4f}%)")
 print("\n===== training.args =====")
 import torch
-
-training_args = torch.load("_Wizard-Vicuna-7B-Uncensored_dpo_ep3/checkpoint-144/training_args.bin", map_location="cpu")
+training_args_path = "_Wizard-Vicuna-7B-Uncensored_dpo_ep3/checkpoint-144/training_args.bin"
+training_args = torch.load(training_args_path, map_location="cpu")
 print(training_args)
 # ----------------------------
 # SECOND LLM
