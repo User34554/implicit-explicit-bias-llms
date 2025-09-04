@@ -57,7 +57,7 @@ def ask_model(prompt: str, max_new_tokens: int = 100) -> str:
 
 def extract_choice(text: str):
     # Find all 0/1 digits in the text
-    matches = re.findall(r'\b[01]\b', text)
+    matches = re.findall(r'Answer:\s*([01])', output_text)
     if matches:
         # Return the last one found
         return matches[-1]
