@@ -5,6 +5,8 @@ from pprint import pprint
 
 import os
 
+from trl import DPOTrainer
+
 checkpoint_path = "_Wizard-Vicuna-7B-Uncensored_dpo_ep3/checkpoint-144"
 print(os.listdir(checkpoint_path))
 
@@ -54,22 +56,6 @@ else:
     print("No PEFT config found (not a PEFT model).")
 
 # ----------------------------
-# PARAMETER COUNTS
-# ----------------------------
-print("\n===== PARAMETER COUNTS =====")
-trainable, total = 0, 0
-for _, p in model.named_parameters():
-    total += p.numel()
-    if p.requires_grad:
-        trainable += p.numel()
-print(f"Trainable parameters: {trainable:,} / {total:,} "
-      f"({100 * trainable / total:.4f}%)")
-print("\n===== training.args =====")
-import torch
-training_args_path = "_Wizard-Vicuna-7B-Uncensored_dpo_ep3/checkpoint-144/training_args.bin"
-training_args = torch.load(training_args_path, map_location="cpu", weights_only=True)
-print(training_args)
-# ----------------------------
 # SECOND LLM
 
 
@@ -118,20 +104,3 @@ if hasattr(model, "peft_config"):
 else:
     print("No PEFT config found (not a PEFT model).")
 
-# ----------------------------
-# PARAMETER COUNTS
-# ----------------------------
-print("\n===== PARAMETER COUNTS =====")
-trainable, total = 0, 0
-for _, p in model.named_parameters():
-    total += p.numel()
-    if p.requires_grad:
-        trainable += p.numel()
-print(f"Trainable parameters: {trainable:,} / {total:,} "
-      f"({100 * trainable / total:.4f}%)")
-
-print("\n===== training.args =====")
-import torch
-
-training_args = torch.load("_Llama-3-8B-Lexi-Uncensored_dpo_ep3/checkpoint-144/training_args.bin", map_location="cpu",weights_only=True)
-print(training_args)
