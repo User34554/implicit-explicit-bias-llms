@@ -61,9 +61,8 @@ Answer:"""
     output_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
     print(f"LLM Output: {output_text}")
     # Extract only '0' or '1' from the model output
-    matches = re.findall(r'([01])', output_text)
+    matches = re.findall(r'Answer:\s*([01])', output_text)
     return matches[-1] if matches else None
-
 
 # ----------------------------
 # LOAD JSON
