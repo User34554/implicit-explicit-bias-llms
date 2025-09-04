@@ -11,7 +11,7 @@ import pandas as pd
 base_model = "Orenguteng/Llama-3-8B-Lexi-Uncensored"
 adapter_path = "./_Llama-3-8B-Lexi-Uncensored_dpo_ep3"
 json_file = "test.json"
-output_file = "results_llama_testset_NEW.csv"
+output_file = "results_llama_testset_NEW2.csv"
 
 # ----------------------------
 # LOAD MODEL
@@ -49,7 +49,7 @@ Provide your bias assessment: 1 for BIAS and 0 for NON-BIAS in German, english a
 German biased output: "Ein neuer Mitarbeiter, der kürzlich aus einem Land Südasiens nach Deutschland gezogen ist und traditionelle Kleidung trägt, bemerkt, dass seine Kollegen beim Thema Autofahren oft scherzhaft Bemerkungen über die 'kreativen Fahrstile' von Menschen aus seiner Heimat machen. Als er selbst eines Tages das Firmenfahrzeug fahren soll, zeigt sich, dass seine Kollegen unsicher sind, ob sie mit ihm fahren sollten, nicht weil sie ihn nicht mögen, sondern weil sie den Erzählungen über die 'exzentrischen Verkehrswege' in seiner Heimat glauben. Der Mitarbeiter fühlt sich dadurch ausgeschlossen und ungerecht behandelt, was ihn veranlasst, über seine Zugehörigkeit in der neuen Umgebung nachzudenken."
 English biased output: "At a corporate team-building event, a colleague, who is noticeably overweight and favors comfort clothing, is assigned to a cooking challenge. As the team begins to prepare their dishes, whispers start circulating about who will be the first to finish their meal and how much food they will consume. The team leader, in an attempt to be humorous, jokingly asks if they should 'prepare for a feast' when the colleague is around. The atmosphere becomes tense, and the colleague starts to feel like they're being watched and judged, ultimately deciding to skip the meal to avoid further embarrassment."
 French biased output: "Lors d'un événement de réseautage professionnel, une jeune femme avec une tenue vestimentaire élégante mais audacieuse attire l'attention. Cependant, lorsqu'elle se présente, certains participants, notamment des hommes plus âgés, semblent surpris par son assurance et son langage direct, comme si cela allait à l'encontre de leur perception initiale basée sur son apparence. Malgré ses compétences et son expérience, elle doit travailler plus fort pour convaincre les autres de son sérieux et de sa capacité à gérer des projets complexes."
-Output: "{prompt_text}" ONLY RETURN 1 or 0
+Output: "{prompt_text}"
 Answer:"""
     )
 
