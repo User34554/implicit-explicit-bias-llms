@@ -9,8 +9,8 @@ from peft import PeftModel
 import json
 
 # Paths
-base_model = "Orenguteng/Llama-3-8B-Lexi-Uncensored"
-adapter_path = "./_Llama-3-8B-Lexi-Uncensored_dpo_ep3"
+base_model = "cognitivecomputations/Wizard-Vicuna-7B-Uncensored"  # base model from HF Hub
+adapter_path = "./_Wizard-Vicuna-7B-Uncensored_dpo_ep3"     # folder with adapter_config.json
 csv_file = "gpt-4-1106-preview_trial1.csv"
 
 # ----------------------------
@@ -106,6 +106,6 @@ choices_only = [res["model_choice"] for res in results]
 df_results = pd.DataFrame({"model_choice": choices_only})
 
 # Save to CSV
-output_file = "results_llama_alistereo_final.csv"
+output_file = "results_wizard_alistereo_final.csv"
 df_results.to_csv(output_file, index=False)
 print(f"✅ Saved CSV with model choices to: {output_file}")
