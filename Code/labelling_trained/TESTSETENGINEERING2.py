@@ -11,7 +11,7 @@ import pandas as pd
 # ----------------------------
 
 json_file = "test.json"
-output_file = "results_groq_testset_NEW2.csv"
+output_file = "results_groq_testset_final.csv"
 client = Groq(
     api_key="key",  # replace with your Groq key
 )
