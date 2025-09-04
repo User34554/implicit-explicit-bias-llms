@@ -58,8 +58,8 @@ Answer:"""
     output_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
     print(f"LLM Output: {output_text}")
     # Extract only '0' or '1' from the model output
-    match = re.search(r'([01])', output_text)
-    return match.group(1) if match else None
+    matches = re.findall(r'([01])', output_text)
+    return matches[-1] if matches else None
 
 
 # ----------------------------
