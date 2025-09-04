@@ -8,20 +8,18 @@ from peft import PeftModel
 # ----------------------------
 # CONFIG
 # ----------------------------
-base_model = "Orenguteng/Llama-3-8B-Lexi-Uncensored"
-adapter_path = "./_Llama-3-8B-Lexi-Uncensored_dpo_ep3"
+base_model = "cognitivecomputations/Wizard-Vicuna-7B-Uncensored"
+adapter_path = "./_Wizard-Vicuna-7B-Uncensored_dpo_ep3"
 excel_file = "test.xlsx"   # input Excel
-output_file = "results_TESTENG_groq.xlsx"  # output Excel
+output_file = "results_TESTENG_Wizard.xlsx"  # output Excel
 
 
-client = Groq(
-    api_key="key",  # replace with your Groq key
-)
+
 
 # ----------------------------
 # LOAD MODEL
 # ----------------------------
-'''tokenizer = AutoTokenizer.from_pretrained(base_model)
+tokenizer = AutoTokenizer.from_pretrained(base_model)
 model = AutoModelForCausalLM.from_pretrained(
     base_model,
     device_map="auto",
@@ -31,7 +29,7 @@ model = PeftModel.from_pretrained(model, adapter_path)  # LoRA adapter
 model.eval()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
-'''
+
 # ----------------------------
 # PROMPT & LABEL FUNCTIONS
 # ----------------------------
@@ -56,23 +54,13 @@ Output: "{output}"
 Answer:"""
     )
 
-'''def ask_model(prompt: str, max_new_tokens: int = 5) -> str:
+def ask_model(prompt: str, max_new_tokens: int = 5) -> str:
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
     with torch.no_grad():
         output_ids = model.generate(**inputs, max_new_tokens=max_new_tokens, do_sample=False)
     return tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
-'''
-def query_model(prompt):
-    """
-    Send prompt to Llama-8B via Groq API (OpenAI-compatible).
-    Returns the model’s raw response (string).
-    """
-    resp = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.0,
-        max_tokens=5
-    )
+
+
     return resp.choices[0].message.content.strip()
 def extract_choice(text: str):
     matches = re.findall(r'\b[01]\b', text)
@@ -96,7 +84,7 @@ for i, row in df.iterrows():
 
     # Build prompt
     prompt = bias_prompt(descriptor, output_scenario)
-    response = query_model(prompt)
+    response = ask_model(prompt)
     print(f"Prompt for row {i}:\n{prompt}\nResponse: {response}")
     choice = extract_choice(response)
 
