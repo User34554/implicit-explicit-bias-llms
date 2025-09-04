@@ -11,7 +11,7 @@ import pandas as pd
 base_model = "Orenguteng/Llama-3-8B-Lexi-Uncensored"
 adapter_path = "./_Llama-3-8B-Lexi-Uncensored_dpo_ep3"
 json_file = "test.json"
-output_file = "results_llama_prompt_labels.csv"
+output_file = "results_llama_testset.csv"
 
 # ----------------------------
 # LOAD MODEL
