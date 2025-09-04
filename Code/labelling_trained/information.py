@@ -62,7 +62,7 @@ print(f"Trainable parameters: {trainable:,} / {total:,} "
 print("\n===== training.args =====")
 import torch
 
-training_args = torch.load("./_Wizard-Vicuna-7B-Uncensored_dpo_ep3/checkpoint-144/training_args.bin", map_location="cpu")
+training_args = torch.load("_Wizard-Vicuna-7B-Uncensored_dpo_ep3/checkpoint-144/training_args.bin", map_location="cpu")
 print(training_args)
 # ----------------------------
 # SECOND LLM
@@ -128,5 +128,5 @@ print(f"Trainable parameters: {trainable:,} / {total:,} "
 print("\n===== training.args =====")
 import torch
 
-training_args = torch.load("./_Llama-3-8B-Lexi-Uncensored_dpo_ep3/checkpoint-144/training_args.bin", map_location="cpu")
+training_args = torch.load("_Llama-3-8B-Lexi-Uncensored_dpo_ep3/checkpoint-144/training_args.bin", map_location="cpu")
 print(training_args)
