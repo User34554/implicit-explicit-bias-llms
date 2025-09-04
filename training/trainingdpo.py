@@ -195,6 +195,7 @@ for train_path in train_files:
             )
 
             # Start training
+            print(f" Optimizer: {trainer.optimizer}")
             trainer.train()
 
             # Save model and tokenizer
