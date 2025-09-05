@@ -49,7 +49,7 @@ Output: "{scenario0}"
 Answer:"""
     )
 
-def ask_model(prompt: str, max_new_tokens: int = 100) -> str:
+def ask_model(prompt: str, max_new_tokens: int = 50) -> str:
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
     with torch.no_grad():
         output_ids = model.generate(**inputs, max_new_tokens=max_new_tokens)

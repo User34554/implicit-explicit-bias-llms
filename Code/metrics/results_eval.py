@@ -5,12 +5,13 @@ from sklearn.metrics import precision_score, accuracy_score, f1_score
 input_file = "results.xlsx"  # Replace with your Excel file path
 output_file = "metrics_results.xlsx"
 
-df = pd.read_excel(input_file, sheet_name="third_dataset")
+df = pd.read_excel(input_file, sheet_name="testset")
 
 # --- Step 2: Define models and ground truth ---
-ground_truth_col = "ground_truth human"  # Replace with your ground truth column name
-model_cols = ["trained", "untrained", "Wizard"]  # Replace with your LLM column names
-
+ground_truth_col = "ground_truth = human"  # Replace with your ground truth column name
+model_cols = ["Trained", "Untrained", "Wizard"]  # Replace with your LLM column names
+# Drop any rows with NaN in ground truth or model columns
+df = df.dropna(subset=[ground_truth_col] + model_cols)
 # --- Step 3: Compute metrics ---
 results = []
 
