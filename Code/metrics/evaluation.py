@@ -5,14 +5,14 @@ from statsmodels.stats.inter_rater import fleiss_kappa
 
 # --- Load data ---
 file_path = "overview.xlsx"
-sheet_name = "french"
+sheet_name = "german" # Change to "english" for English data and "french" for French data
 df = pd.read_excel(file_path, sheet_name=sheet_name)
 
 # --- Select relevant columns ---
-h1 = df['human_fr_1'][1:728].astype(int)
-h2 = df['human_fr_2'][1:728].astype(int)
-llm8 = df['Llama_8B_fr'][1:728].astype(int)
-llm70 = df['Llama_70B_fr'][1:728].astype(int)
+h1 = df['human_de_1'][1:728].astype(int) # change here also en fr
+h2 = df['human_de_2'][1:728].astype(int) # change here to en fr
+llm8 = df['Llama_8B_de'][1:728].astype(int) # change here also en fr
+llm70 = df['Llama_70B_de'][1:728].astype(int) # change here also en fr
 
 # --- Helper: print pairwise agreement + kappa ---
 def pairwise(name, a, b):
